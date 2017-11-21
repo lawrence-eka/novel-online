@@ -1,0 +1,1 @@
+yalla-cli -s src -d dist -m compiler

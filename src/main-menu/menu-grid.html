@@ -1,0 +1,16 @@
+<inject from="/main-menu/menu-block" name="menu-block"></inject>
+
+<div class="container custom-std-anim">
+    <div class="row row-centered">
+        <span for.each="item in mainMenu()">
+            <menu-block icon.bind="item.icon" text.bind="item.short" click.trigger="mainMenu(item.addr)"></menu-block>
+        </span>
+    </div>
+</div>
+
+<script>
+    function initState(props){
+	    document.getElementsByName('motherNature')[0].className="body-no-background";
+    	return {};
+    }
+</script>

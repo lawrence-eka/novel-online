@@ -1,0 +1,141 @@
+{
+	"type": "Collection",
+	"properties": {
+		"fileId": {
+			"name": "fileId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "fileId",
+			"order": 0
+		},
+		"thumbFileId": {
+			"name": "thumbFileId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "thumbFileId",
+			"order": 1
+		},
+		"title": {
+			"name": "title",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "title",
+			"order": 2
+		},
+		"titleSortBy": {
+			"name": "titleSortBy",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "titleSortBy",
+			"order": 3
+		},
+		"uploaderId": {
+			"name": "uploaderId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "uploaderId",
+			"order": 4
+		},
+		"filename": {
+			"name": "filename",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "filename",
+			"order": 5
+		},
+		"creator": {
+			"name": "creator",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "creator",
+			"order": 6
+		},
+		"isPublished": {
+			"name": "isPublished",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "isPublished",
+			"order": 7
+		},
+		"identifier": {
+			"name": "identifier",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "identifier",
+			"order": 8
+		},
+		"date": {
+			"name": "date",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "date",
+			"order": 9
+		},
+		"subjects": {
+			"name": "subjects",
+			"type": "array",
+			"typeLabel": "array",
+			"required": false,
+			"id": "subjects",
+			"order": 10
+		},
+		"description": {
+			"name": "description",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "description",
+			"order": 11
+		},
+		"filesize": {
+			"name": "filesize",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "filesize",
+			"order": 12
+		},
+		"thumb": {
+			"name": "thumb",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "thumb",
+			"order": 13
+		},
+		"stars": {
+			"name": "stars",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "stars",
+			"order": 14
+		},
+		"lastUpdatedDate": {
+			"name": "lastUpdatedDate",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "lastUpdatedDate",
+			"order": 15
+		},
+		"isEditable": {
+			"name": "isEditable",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "isEditable",
+			"order": 16
+		}
+	}
+}

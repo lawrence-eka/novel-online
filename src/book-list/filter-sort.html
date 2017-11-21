@@ -1,0 +1,22 @@
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/upload/genre-editor" name="genre"></inject>
+
+<div>
+    <form>
+        <div class="row">
+            <entry type="select" name="sortBy" prompt="Sort By" entries.bind="[{text:'Title', value:'titleSortBy'}, {text:'Stars',value:'stars'}, {text:'Upload Date',value:'lastUpdatedDate'}, {text:'Publish Year',value:'year'}]" divClass="col col-xs-12 col-sm-12 col-md-12 col-lg-12"></entry>
+            <entry type="text" name="contains" prompt="Search" divClass="col col-xs-12 col-sm-12 col-md-12 col-lg-12"></entry>
+            <div class="col col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <genre prompt="Genres" name='genres'></genre>
+            </div>
+            <entry type="button" value="Apply" click.trigger="onApplyFilter()" divClass="col col-xs-12 col-sm-12 col-md-12 col-lg-12"></entry>
+        </div>
+    </form>
+</div>
+
+<script>
+    function onApplyFilter(){
+        var e = this.target.form.elements;
+    	this.emitEvent('apply', {contains:e.contains.value, genres:e.genres.value, sort:e.sortBy.value});
+    }
+</script>

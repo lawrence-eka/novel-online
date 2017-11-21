@@ -1,0 +1,6 @@
+{
+
+	"username": "ayu.saraswati",
+	"password": "eka",
+	"email": "ayu.taninomoto@yahoo.com"
+}

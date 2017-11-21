@@ -1,0 +1,142 @@
+<inject from="/component/navbar" name="navbar"></inject>
+
+<div class="container custom-std-anim" name="universe" created.trigger="onCreated()" deleted.trigger="onDeleted()">
+    <div data.load="checkCurrentUser()"  name="motherNature" class="body-no-background">
+        <span ref.name="navbarMain">
+            <navbar mainMenu.bind="mainMenu" additionalicons.bind="@additionalIcons" iconClicked.trigger="onIconClicked(event)"></navbar>
+        </span>
+        <div if.bind="@atHome" class="row row-centered">
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-centered">
+                <img src="/asset/img/image6.jpg" class="custom-main-menu-image">
+            </div>
+        </div>
+        <slot-view></slot-view>
+    </div>
+</div>
+
+<script>
+
+	function initState(props){
+
+		console.log('app init state')
+		var state = {};
+
+		state.hideHomeButton = (window.location.hash == mainMenuPath);
+        state.additionalIcons = homeButton(state.hideHomeButton);
+        state.atHome = (window.location.hash == mainMenuPath);
+		return state;
+	}
+
+	function onPropertyChange(props){
+		console.log('app property change')
+
+    }
+
+    function homeButton(hideHomeButton){
+	    if(!hideHomeButton) {
+		    return [
+			    {icon: "fa fa-home normal-icon pull-right", name: "close", click: function(){window.location.hash=mainMenuPath;}},
+		    ];
+	    }
+	    else return [];
+    }
+
+    this.popupManager=null;
+	this.navbarManager=null;
+
+    function checkCurrentUser(){
+        setManagers.bind(this)();
+    	return storage.me.read();
+    }
+
+    function onCreated() {
+    	//console.log('app on created')
+        document.body.className="body-no-background";
+    }
+
+    function setManagers(){
+    	//console.log('app set managers')
+        var self = this;
+
+    	function NavbarManager(){
+    		//this.state = self.state;
+
+    		this.additionalIcons = function(icons) {
+
+    			self.state.additionalIcons = icons.concat(homeButton(self.state.hideHomeButton));
+
+//			    if(!override) {
+//				    self.state.additionalIcons = icons.filter(function (i) {
+//					    return !self.state.additionalIcons.find(function (a) {
+//						    return a.name == i.name
+//					    })
+//				    }).concat(self.state.additionalIcons);
+//			    }
+//			    else {
+//				    self.state.additionalIcons = icons.concat(self.state.additionalIcons.filter(function (i) {
+//					    return !icons.find(function (a) {
+//						    return a.name == i.name
+//					    })
+//				    }));
+//                }
+			    $patchChanges('navbarMain');
+            }
+
+            this.removeAdditionalIcons = function(iconName) {
+	            if(iconName) self.state.additionalIcons = self.state.additionalIcons.filter(function(i){return i.name != iconName});
+	            else self.state.additionalIcons = homeButton(self.state.hideHomeButton);
+	            $patchChanges('navbarMain');
+            }
+        }
+
+
+	    function PopupManager () {
+		    var popup = [];
+
+		    this.create = function(child, isScrollable, additionalClassName) {
+			    var panel = document.createElement('div');
+			    popup.push(panel);
+			    var universe = document.getElementsByName('universe')[0];
+			    var panels = universe.children;
+			    panels[panels.length - 1].classList.add('blur');
+			    panels[panels.length - 1].classList.remove('not-blur');
+
+			    universe.appendChild(panel);
+			    panel.classList.add("container", "centered-form", (isScrollable? "popupContainerScrollable" : "popupContainer"), additionalClassName);
+			    panel.style.visibility = 'visible';
+			    panel.appendChild(child);
+			    return panel;
+		    }
+
+		    this.close = function(afterClosing){
+
+			    doClose = function(afterClosing){
+				    document.getElementsByName('universe')[0].removeChild(popup.splice(-1)[0]);
+				    afterClosing();
+			    }
+
+			    var panel = popup[popup.length - 1];
+			    panel.classList.add('custom-fadeout-anim');
+
+			    var panels = document.getElementsByName('universe')[0].children;
+			    panels[panels.length - 2].classList.add('not-blur');
+			    panels[panels.length - 2].classList.remove('blur');
+			    if(afterClosing) setTimeout(doClose.bind(this, afterClosing), 250);
+		    }
+	    }
+
+	    popupManager = new PopupManager();
+    	navbarManager = new NavbarManager();
+    }
+
+    document.addEventListener('touchmove', function(event){if(event.scale !==1){event.preventDefault();}}, false);
+	var lastTouchEnd = 0;
+	document.addEventListener('touchend', function (event) {
+	  var now = (new Date()).getTime();
+	  if (now - lastTouchEnd <= 300) {
+	    event.preventDefault();
+	  }
+	  lastTouchEnd = now;
+	}, false);
+
+</script>

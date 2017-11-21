@@ -1,0 +1,222 @@
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/component/horizontal-line" name="line"></inject>
+<inject from="/upload/genre-editor" name="genre"></inject>
+<inject from="/component/profile-picture/home" name="pict"></inject>
+<inject from="/writer/chapters" name="chapters"></inject>
+<inject from="/writer/chapter-editor" name="chapter-editor"></inject>
+
+
+<div>
+    <div if.bind="!@editedChapter">
+        <div class="container custom-std-anim" data.load="loadData()">
+            <form created.trigger="onFormCreated()">
+                <div class="row book-row-centered">
+                    <pict name="pict" img.bind="'thumbs/' + @book.thumb" quality="1" ratio.bind="@book.isEditable? 1:{width:100}"></pict>
+                </div>
+                <div class="row">
+                    <entry type="checkbox" name='isPublished' prompt="Published" checked.bind="@book.isPublished" style="padding-left:0 !important"></entry>
+                    <entry type="text" naked name='title' prompt="Title" value.bind="@book.title"></entry>
+                    <entry type="text" naked name='creator' prompt="Author" value.bind="@book.creator"></entry>
+                    <entry type="text" naked name='date' prompt="Year" value.bind="@book.date"></entry>
+                    <entry type="textarea" naked name='description' prompt="Description" value.bind="@book.description" collapsible></entry>
+                    <genre prompt="Genre" name='subjects' genres.bind="@book.subjects"></genre>
+                </div>
+            </form>
+        </div>
+        <div if.bind="@book.isEditable">
+            <chapters bookId.bind="@book.id" edit.trigger="onEditChapter(event)"></chapters>
+        </div>
+    </div>
+    <div if.bind="@editedChapter">
+        <chapter-editor chapter.bind="@editedChapter" save.trigger="onEndEditChapter()" cancel.trigger="onEndEditChapter()" delete.trigger="onEndEditChapter()"></chapter-editor>
+    </div>
+</div>
+
+<script>
+	function initState(props){
+		var state={};
+		state.book = props.book;
+		state.deleteWhenCancel = props.deletewhencancel;
+		state.reviews = [];
+		state.alert = new Alert(null, $patchChanges, "alert");
+		state.editedChapter = null;
+        return state;
+	}
+
+	function onPropertyChange(props){
+		if(props.book){
+			this.state.book = props.book.newValue;
+			this.state.editedChapter = null;
+			this.state.reviews = [];
+        }
+        if(props.deletewhencancel) {
+			this.state.deleteWhenCancel = props.deletewhencancel.newValue;
+        }
+    }
+
+	function onFormCreated(){
+        var additionalIcons = [
+			{icon: "fa fa-save normal-icon", name: "save", click: onSave.bind(this)},
+			{icon: "fa fa-undo normal-icon", name: "cancel", click: onCancel.bind(this)},
+		];
+		if(!this.state.deleteWhenCancel) {
+			additionalIcons.push({icon: "fa fa-trash-o normal-icon", name: "delete", click: onDelete.bind(this)});
+		}
+		this.state.formElements = this.target.elements;
+
+		navbarManager.additionalIcons(additionalIcons);
+    }
+
+	function loadData(){
+		var self = this;
+		//debugger;
+		return new Promise(function(resolve) {
+			loadBook.bind(self)()
+				.then(function(){
+					//debugger;
+					resolve(self.state.book);
+				});
+		});
+	}
+
+	function loadBook(){
+		var self = this;
+		return new Promise(function(resolve){
+			if(!self.state.book){
+				return
+			}
+			else if(typeof self.state.book == 'object') {
+				resolve(self.state.book)
+				return;
+			}
+			dpd.books.get(self.state.book, function(book, err){
+				self.state.book = book;
+				if(self.state.book.subjects) {
+					self.state.book.genre='';
+					self.state.book.subjects.forEach(function(s){self.state.book.genre += ((self.state.book.genre ? ',  ' : '') + s)})
+				}
+				resolve(self.state.book);
+			});
+		})
+	}
+
+	function saveBook(){
+		var self = this;
+		var e = self.state.formElements;
+		//debugger;
+
+        return new Promise(function(resolve){
+	        self.state.book.title = e.title.value;
+	        self.state.book.creator = e.creator.value;
+	        self.state.book.date = e.date.value;
+	        self.state.book.description = e.description.value;
+	        self.state.book.subjects = e.subjects.value.split(',').filter(function(s){return s.trim() != ''});
+	        self.state.book.isPublished = e.isPublished.checked;
+
+	        if(!self.state.book.filename) {
+		        dpd.books.post(self.state.book, function(result, err){
+			        if(err){
+				        console.log('error', err);
+			        }
+			        else {
+				        self.state.book.filename = result.id;
+				        self.state.book.id = result.id;
+				        self.state.book.thumb = self.state.book.thumb || self.state.book.id;
+				        //saveFile(e.pict.blob, self.state.book.filename, self.state.book.thumb).then(function (result) {
+				        saveThumb(e.pict.blob, self.state.book.thumb).then(function (result) {
+					        if (result) {
+						        self.state.book.thumbFileId = result.add[0].id;
+						        //self.state.book.thumb = result.add[0].filename.substr(result.add[0].filename.lastIndexOf('/'));
+					        }
+					        dpd.books.put(self.state.book.id, self.state.book, function (result) {
+					        	resolve(result);
+					        });
+				        })
+			        }
+		        })
+	        }
+	        else {
+		        self.state.book.thumb = self.state.book.thumb || self.state.book.id;
+		        //saveFile(e.pict.blob, self.state.book.filename, self.state.book.thumb).then(function (result) {
+		        saveThumb(e.pict.blob, self.state.book.thumb).then(function (result) {
+			        if (result) {
+				        self.state.book.thumbFileId = result.add[0].id;
+				        //self.state.book.thumb = result.add[0].filename.substr(result.add[0].filename.lastIndexOf('/'));
+			        }
+			        dpd.books.put(self.state.book.id, self.state.book, function (result) {
+			        	resolve(result);
+			        });
+		        })
+	        }
+        });
+    }
+
+	function onSave(){
+		var self = this;
+		saveBook.bind(this)().then(function(result){
+			$patchChanges();
+			self.emitEvent('save');
+        });
+    }
+
+    function onDelete(){
+        if(!this.state.book.id) {
+		    this.emitEvent('delete');
+		    return;
+	    }
+		var self = this;
+		dpd.books.del(self.state.book.id, function(result){
+			self.emitEvent('delete');
+        })
+    }
+
+    function onCancel(){
+    	if(this.state.deleteWhenCancel) onDelete.bind(this)();
+        else this.emitEvent('cancel');
+    }
+
+    function onEditChapter(event) {
+    	var self = this;
+    	saveBook.bind(this)().then(function(result){
+    		event.data.bookId = result.id;
+		    self.state.editedChapter = event.data;
+		    $patchChanges();
+        })
+    }
+
+	//function saveFile(img, path, filename) {
+	function saveThumb(img, filename) {
+		var self = this;
+		path = (filename? filename:'cover.jpg');
+		return new Promise(function(resolve, reject){
+			var fd = new FormData();
+			//debugger;
+			if(img) {
+                /* new way started */
+                fd.append("uploadedFile", img.blob, path)
+				var xhr = new XMLHttpRequest();
+				xhr.open('PUT', '/thumbfiles');
+				xhr.onload = function () {
+					var response = JSON.parse(this.responseText);
+
+					if(this.status < 300) {
+						resolve({add: response});
+					} else {
+						reject({message: response.message});
+					}
+				};
+				xhr.onerror = function (err) {
+					reject({message: err});
+				}
+				xhr.send(fd);
+			} else {
+				resolve();
+			}
+		});
+	}
+
+	function onEndEditChapter(){
+    	this.state.editedChapter=null;
+    	$patchChanges();
+    }
+</script>

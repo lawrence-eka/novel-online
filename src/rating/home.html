@@ -1,0 +1,47 @@
+<inject from="/rating/star" name="star"></inject>
+<inject from="/component/entry" name="entry"></inject>
+
+<div style="display:inline-block;line-height:0;">
+    <span ref.name="stars">
+        <div style="line-height:0;display:inline-block;text-align:left;">
+            <div for.each="star in @stars" style="line-height:0;display:inline-block;">
+                <star value.bind="star.value" readonly.bind="@readonly" click.trigger="onStarClicked(star.index, event)"></star>
+            </div>
+
+        </div>
+        <div if.bind="$showtext" style.bind="('line-height:1; text-align:center;') + $textstyle">
+            <div style="margin: 0 auto;line-height:1; display:inline-block;">
+                <entry type="label" naked prompt.bind="@value" style="line-height:1;"></entry>
+                <entry type="text" name.bind="$name" naked hidden value.bind="@value"></entry>
+            </div>
+        </div>
+    </span>
+</div>
+<script>
+	function initState(props) {
+		var state = {};
+		state.stars = new Array(parseInt(props.max));
+		state.max = props.max;
+        setValues(state.stars, props.value, props.max);
+		state.value = parseFloat(props.value || '0.0').toFormattedString(1);
+		state.readonly = props.readonly;
+		return state;
+	}
+
+	function setValues(stars, value, max){
+		for(var i = 0; i < max; value -= 1, i++) {
+			var v = {};
+			v.index = i;
+			v.value = (value > 1 ? 1 : value > 0 ? value : 0);
+			stars[i] = v;
+		}
+    }
+
+	function onStarClicked(index, event){
+		this.state.value = index + event.data;
+		this.state.value = (this.state.value * 2 <= this.state.max ? Math.floor(this.state.value * 10)/10 : Math.ceil(this.state.value * 10)/10);
+		setValues(this.state.stars, this.state.value, this.state.max);
+		this.state.value = parseFloat(this.state.value).toFormattedString(1);
+		$patchChanges('stars');
+    }
+</script>

@@ -1,0 +1,38 @@
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#"></a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li for.each="menu in mainMenu()">
+                    <a href.bind="menu.addr" if.bind="menu.addr" click.trigger="hideMenu()">{{(menu.long ? menu.long : menu.short)}}</a>
+                    <a click.trigger="logout()" if.bind="!menu.addr" class="custom-mouse-pointer">{{(menu.long ? menu.long : menu.short)}}</a>
+                </li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</nav>
+<style>
+</style>
+<script>
+    function logout(){
+    	//debugger;
+        dpd.users.logout(function(err) {
+        	//debugger;
+        	storage.me.erase();
+            window.location.hash = '#app';
+        });
+    }
+
+    function hideMenu(){
+        $('.navbar-toggle').click();
+    }
+
+</script>

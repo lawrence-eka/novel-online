@@ -1,0 +1,66 @@
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/component/horizontal-line" name="line"></inject>
+
+<div>
+    <div class="row>">
+        <line top="7" width="100" height="3"></line>
+        <entry type="label" prompt="CHAPTERS (Click to edit)" divClass="col col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-left:0 !important; position:inherit;"></entry>
+    </div>
+    <div class="row">
+        <entry type="button" value="Add New Chapter" click.trigger=onEditChapter()" style="position:inherit;"></entry>
+    </div>
+    <div data.load="loadChapters(@bookId)">
+        <div for.each="chapter in data">
+            <div class="row">
+                <entry type="label" prompt.bind="chapter.seqNo + '. ' + chapter.title" divClass="col col-xs-12 col-sm-12 col-md-12 col-lg-12" style="position:inherit;" click.trigger="onEditChapter(chapter)"></entry>
+            </div>
+            <div class="row">
+                <entry type="label" value.bind="chapter.content" click.trigger="onEditChapter(chapter)" collapsible="5" divClass="col col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding-left:25px !important; position:inherit"></entry>
+            </div>
+            <line></line>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initState(props){
+    	return {
+    		bookId: props.bookId,
+            nextSeq: 1,
+        }
+    }
+
+    function onPropertyChange(props){
+    	if(props.bookId){
+    		this.state.bookId = props.bookId.newValue;
+    		this.state.nextSeq = 1;
+        }
+    }
+    function loadChapters(bookId){
+    	var self = this;
+    	return new Promise(function(resolve) {
+    		if(!bookId) {
+    			resolve([]);
+    			return;
+		    }
+		    dpd.chapters.get({bookId: bookId, $sort: {seqNo: 1}}, function (chapters) {
+		    	self.state.nextSeq = chapters[chapters.length - 1].seqNo + 1;
+                resolve(chapters);
+		    })
+	    });
+    }
+
+    function onNewChapter(){
+        this.emitEvent('edit', chapter);
+    }
+
+    function onEditChapter(chapter){
+    	if(!chapter){
+		    chapter = {
+			    bookId: this.state.bookId,
+			    seqNo: this.state.nextSeq,
+		    }
+        }
+    	this.emitEvent('edit', chapter);
+    }
+</script>

@@ -1,0 +1,59 @@
+curl -X POST https://api.sparkpost.com/api/v1/transmissions -H "Authorization: 1f8c7dfcc815728b497537c263d73f9e1fc52193" -H "Content-Type: application/json" -d @sendEmail.txt > result.txt
+
+curl -k -X POST -H "Content-Type: application/json" -d @newUser.txt https://localhost/users > result.txt
+
+curl -k -X POST -H "Content-Type: application/json" -d @login.txt https://localhost/users/login -c cookie.txt > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt https://localhost/users -d @getNeedApprovals.txt > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt https://localhost/users > result.txt
+
+curl -k -X PUT -H "Content-Type: application/json" -b cookie.txt https://localhost/users/d8589ac69fc3c9b9 -d @updateUser.txt > result.txt
+
+curl -k -X PUT -H "Content-Type: application/json" -b cookie.txt https://localhost/users/d8589ac69fc3c9b9 -d @updateUser.txt > result.txt
+
+curl -k -X POST -H "Content-Type: application/json" -b cookie.txt https://localhost/users/logout > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt "https://localhost/users?includeTravelAgents=true&includePackages=true&includeItineraries=true" > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt "https://localhost/users/me" > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" "https://localhost/users?email=aduh@aduh.aduh" > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt "https://localhost/travelagents" > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt "https://localhost/travelagents/6a4dc8cd989d5873" > result.txt
+
+curl -k -X POST -H "Content-Type: application/json" -b cookie.txt https://localhost/packages -d @newPackage.txt > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt https://localhost/packages/55476e319be108ff > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt https://localhost/packages > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt https://localhost/packages -d @searchPackage.txt > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt "https://localhost/packages?showNext=4" > result.txt
+
+curl -k -X POST -H "Content-Type: application/json" -b cookie.txt https://localhost/itineraries -d @newItinerary.txt > result.txt
+
+curl -k -X PUT -H "Content-Type: application/json" -b cookie.txt https://localhost/itineraries/09575dd600bdcb83 -d @updateItinerary.txt> result.txt
+
+curl -k -X DELETE -H "Content-Type: application/json" -b cookie.txt https://localhost/itineraries/0d2599e6de083881 > result.txt
+
+curl -k -X POST -H "Content-Type: application/json" -b cookie.txt https://localhost/bookings -d @newPurchase.txt > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt https://localhost/bookings > result.txt
+
+curl -k -X POST -H "Content-Type: application/json" -b cookie.txt https://localhost/forums -d @newForum.txt > result.txt
+
+curl -k -X PUT -H "Content-Type: application/json" -b cookie.txt https://localhost/forums/e0f19f4fcacc58d9 -d @updateForum.txt > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt https://localhost/forums > result.txt
+
+curl -k -X POST -H "Content-Type: application/json" -b cookie.txt https://localhost/threads -d @newThread.txt > result.txt
+
+curl -k -X POST -H "Content-Type: application/json" -b cookie.txt https://localhost/comments -d @newComment.txt > result.txt
+
+curl -k -X PUT -H "Content-Type: application/json" -b cookie.txt https://localhost/comments/beaa36f8045adb44 -d @updateComment.txt > result.txt
+
+curl -k -X GET -H "Content-Type: application/json" -b cookie.txt https://localhost/travelagents -d @getTravelAgents.txt > result.txt

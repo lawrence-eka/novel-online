@@ -1,0 +1,36 @@
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/genres/list" name="list"></inject>
+<inject from="/genres/editor" name="editor"></inject>
+<inject from="/component/home-button" name="home"></inject>
+
+<div>
+    <span ref.name="editor">
+        <div class="row" if.bind="!@genre">
+            <entry type="button" value="New Genre" click.trigger="onAdd()"></entry>
+        </div>
+        <editor if.bind='@genre' genre.bind="@genre" title='New Genre' cancel.trigger="onEndEdit()" save.trigger="onEndEdit()"></editor>
+        <list></list>
+    </span>
+</div>
+
+<script>
+    function initState(props){
+    	return{
+    		genre:null,
+        }
+    }
+
+    function onAdd() {
+    	this.state.genre = '-';
+    	$patchChanges('editor');
+    }
+//    function onEdit(event){
+//    	this.state.genre = event.data;
+//    	$patchChanges();
+//    }
+//
+    function onEndEdit(){
+    	this.state.genre = null;
+    	$patchChanges('editor');
+    }
+</script>

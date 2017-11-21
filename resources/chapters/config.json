@@ -1,0 +1,45 @@
+{
+	"type": "Collection",
+	"properties": {
+		"bookId": {
+			"name": "bookId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "bookId",
+			"order": 0
+		},
+		"seqNo": {
+			"name": "seqNo",
+			"type": "number",
+			"typeLabel": "number",
+			"required": true,
+			"id": "seqNo",
+			"order": 1
+		},
+		"title": {
+			"name": "title",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "title",
+			"order": 2
+		},
+		"content": {
+			"name": "content",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "content",
+			"order": 3
+		},
+		"lastUpdatedDate": {
+			"name": "lastUpdatedDate",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "lastUpdatedDate",
+			"order": 4
+		}
+	}
+}

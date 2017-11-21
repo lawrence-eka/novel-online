@@ -1,0 +1,45 @@
+{
+	"type": "Collection",
+	"properties": {
+		"bookId": {
+			"name": "bookId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "bookId",
+			"order": 0
+		},
+		"personId": {
+			"name": "personId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "personId",
+			"order": 1
+		},
+		"stars": {
+			"name": "stars",
+			"type": "number",
+			"typeLabel": "number",
+			"required": true,
+			"id": "stars",
+			"order": 2
+		},
+		"review": {
+			"name": "review",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "review",
+			"order": 3
+		},
+		"date": {
+			"name": "date",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "date",
+			"order": 4
+		}
+	}
+}

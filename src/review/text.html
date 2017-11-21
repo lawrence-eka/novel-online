@@ -1,0 +1,23 @@
+<inject from="/component/entry" name="entry"></inject>
+
+<div ref.name="text">
+    <entry type="label" naked prompt.bind="@prompt" value.bind="@showShort?@valueShort:@valueLong"></entry>
+    <entry if.bind="@valueShort != @valueLong" type="label" naked value.bind="@showShort?'see more':'see less'"></entry>
+</div>
+<script>
+    function initState(props){
+	    props.shortwords = props.shortwords || 20
+    	var l = props.value;
+    	var s = l.split(' ').slice(0, props.shortwords).join(' ');
+    	s += l.length > s.length? '...':'';
+
+    	var state= {
+    		prompt: props.prompt,
+            valueLong: l,
+            valueShort: s,
+            shortwords: props.shortwords,
+            showShort:true,
+        }
+        return state;
+    }
+</script>

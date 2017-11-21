@@ -1,0 +1,48 @@
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/component/panel" name="panel"></inject>
+
+<div created.trigger="onCreated()" name.bind="$name">
+    <span ref.name="searchPanel">
+        <entry type="search" naked name="searchText" search.trigger="onSearch(event)"></entry>
+    </span>
+</div>
+<script>
+    function initState(props){
+    	return {
+    		show: props.show,
+            //navbar: props.navbar,
+        }
+    }
+
+    function onSearch(event){
+    	console.log(event.data);
+    	this.emitEvent('search', event.data);
+    	//this.state.show = false;
+    	//$patchChanges('searchPanel');
+    }
+
+    function whatPanel(isSearchPanelOpened){
+    	//var style="panel-slider";
+	    var style = "panel-slider " + (!isSearchPanelOpened?'panel-slider-closed':'');
+	    //console.log('whatPanel', isSearchPanelOpened, style);
+	    return style;
+    }
+    function drawerCover(isSearchPanelOpened) {
+	    //var style="screen-cover";
+        var style = isSearchPanelOpened ? "screen-cover" : 'screen-uncover';
+	    //console.log('drawerCover', isSearchPanelOpened, style);
+	    return style;
+    }
+
+    function hideMenu(){
+       // this.state.show = false;
+       // $patchChanges("searchPanel");
+    }
+
+    function onCreated(){
+    	console.log('search panel created');
+    	//var navbars = document.getElementsByClassName("navbar-fixed-top");
+    	//var navbar = this.state.navbar || navbars.length ? navbars[navbars.length - 1] : null;
+	    //if(navbar) navbar.appendChild(this.target) ;
+    }
+</script>

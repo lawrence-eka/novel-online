@@ -1,0 +1,27 @@
+<inject from="/user/userProfile" name="profile"></inject>
+
+<div>
+    <profile save.trigger="register(event)" cancel.trigger="cancelRegistration()" error.bind="@error" save.trigger="onSave(event)"></profile>
+</div>
+
+<script>
+    function initState() {
+        return {
+        	error: null,
+            onSaved: new Event(),
+        }
+    }
+
+    function onPropertyChange(props) {
+    	if(props.error) {this.state.error = props.error.newValue;}
+    }
+    function cancelRegistration() {
+        window.location.hash = "#app";
+    }
+
+    function onSave(){
+    	debugger;
+        window.location.hash = mainMenuPath;
+    }
+</script>
+

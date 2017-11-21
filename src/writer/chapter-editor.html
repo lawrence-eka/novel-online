@@ -1,0 +1,93 @@
+<inject from="/component/entry" name="entry"></inject>
+
+<div>
+    <div data.load="loadChapter()">
+        <form  created.trigger="onFormCreated()">
+            <entry type="number" prompt="Sequence" name="seqNo" value.bind="data.seqNo"></entry>
+            <entry type="text" prompt="Title" name="title" value.bind="data.title"></entry>
+            <entry type="textarea" prompt="Content" name="content" rich value.bind="data.content" areastyle="height:300px"></entry>
+        </form>
+    </div>
+</div>
+
+<script>
+    function initState(props){
+    	return {
+            chapter:props.chapter,
+            deleteWhenCancel: (!props.chapter) || (!props.chapter.id),
+        }
+    }
+    function loadChapter(){
+    	var self = this;
+    	return new Promise(function(resolve){
+    		if(!self.state.chapter) resolve({});
+    		else if(typeof(self.state.chapter)=='object') resolve(self.state.chapter);
+    		else {
+    			dpd.chapter.get(self.state.chapter, function(result){
+				    self.state.chapter = result;
+    				resolve(self.state.chapter);
+                })
+            }
+        })
+    }
+
+    function onPropertyChange(props){
+        if(props.chapter) {
+    		this.state.chapter = props.chapter.newValue;
+    		this.state.deleteWhenCancel = (!this.state.chapter) || (!this.state.chapter.id);
+        }
+    }
+
+    function onFormCreated(){
+	    var additionalIcons = [
+		    {icon: "fa fa-save normal-icon", name: "save", click: onSave.bind(this)},
+		    {icon: "fa fa-undo normal-icon", name: "cancel", click: onCancel.bind(this)},
+	    ];
+	    if(!this.state.deleteWhenCancel) {
+		    additionalIcons.push({icon: "fa fa-trash-o normal-icon", name: "delete", click: onDelete.bind(this)});
+	    }
+	    else {
+	    	navbarManager.removeAdditionalIcons('delete');
+        }
+	    navbarManager.additionalIcons(additionalIcons, true);
+    }
+
+    function onSave(){
+	    var e = this.target.elements;
+	    var self = this;
+
+	    self.state.chapter.seqNo = e.seqNo.value;
+	    self.state.chapter.title = e.title.value;
+	    self.state.chapter.content = e.content.value;
+
+	    if(self.state.chapter.id) {
+	    	dpd.chapters.put(self.state.chapter.id, self.state.chapter, function(result){
+	    		self.emitEvent('save');
+            })
+        }
+        else {
+	    	dpd.chapters.post(self.state.chapter, function(result){
+	    		self.emitEvent('save');
+            })
+        }
+    }
+
+    function onDelete(){
+    	var self = this;
+    	if(self.state.chapter.id){
+    		dpd.chapters.del(self.state.chapter.id, function(result){
+    			self.emitEvent('delete');
+            })
+        }
+        else {
+    		self.emitEvent('delete');
+        }
+    }
+
+    function onCancel(){
+	    if(this.state.deleteWhenCancel) onDelete.bind(this)();
+	    else this.emitEvent('cancel');
+    }
+
+
+</script>

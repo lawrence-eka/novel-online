@@ -1,0 +1,6 @@
+{
+	"type": "Fileupload",
+	"directory": "upload/bookfiles",
+	"authorization": true,
+	"uniqueFilename": true
+}

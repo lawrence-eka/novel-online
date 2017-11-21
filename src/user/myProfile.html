@@ -1,0 +1,53 @@
+<inject from="/user/userProfile" name="profile"></inject>
+
+<div data.load="getMyProfile()">
+    <profile profile.bind="data" save.trigger="onSave(event)" cancel.trigger="onCancel()" error.bind="@error.message"></profile>
+</div>
+
+<script>
+
+
+    function initState(props) {
+    	//debugger;
+        return {
+        	editedUserId: props.editedUserId,
+            error : {
+                message : ''
+            }
+        };
+    }
+
+    function onPropertyChange(props){
+    	if(props.editedUserId) this.state.editedUserId = props.editedUserId.newValue;
+    }
+
+    function getMyProfile(){
+    	var self = this;
+		return new Promise(function(resolve) {
+			//debugger;
+			if(!self.state.editedUserId) {
+				dpd.users.me(function (me) {
+					//debugger;
+					if (!me) {
+						storage.me.erase();
+						window.location.hash = "#app";
+					}
+					resolve(me);
+				});
+			} else {
+				dpd.users.get(self.state.editedUserId, function (user, err) {
+					debugger;
+					resolve(user);
+				});
+            }
+		});
+	}
+
+	function onCancel() {
+		window.location.hash = mainMenuPath;
+	}
+	function onSave(){
+        window.location.hash = mainMenuPath;
+	}
+</script>
+

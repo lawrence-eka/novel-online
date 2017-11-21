@@ -1,0 +1,55 @@
+<inject from="/book-list/book-grid" name="books"></inject>
+<inject from="/upload/info-editor" name="info"></inject>
+<inject from="/component/entry" name="entry"></inject>
+
+<div>
+    <span ref.name="booklist" if.bind="!@editedBook">
+        <div class="row">
+            <entry type="button" name="btnnewStory" value="Start Writing a New Story" divClass="col-xs-12 col-sm-12 col-md-12 col-lg-12" click.trigger="onNewStory()"></entry>
+        </div>
+        <books title="Your Books:" titlenobook="You haven't written any book yet." manage='editable' click.trigger="onEditInfo(event)"></books>
+    </span>
+    <span if.bind="@editedBook">
+        <info book.bind="@editedBook" deletewhencancel.bind="@deleteWhenCancel" save.trigger="onEndEditInfo()" delete.trigger="onEndEditInfo()" cancel.trigger="onEndEditInfo()"></info>
+    </span>
+</div>
+<script>
+	function initState(props){
+		var state = {};
+		state.editedBook = null;
+		state.deleteWhenCancel = false;
+		return state;
+	}
+
+	function onPropertyChange(props){
+		navbarManager.removeAdditionalIcons();
+    }
+	function onEditInfo(event){
+		this.state.deleteWhenCancel = false;
+		this.state.editedBook = event.data;
+		$patchChanges();
+	}
+
+	function onEndEditInfo(){
+		this.state.editedBook = null;
+		navbarManager.removeAdditionalIcons();
+		$patchChanges();
+	}
+
+	function onNewStory(){
+		var fullName = storage.me.read().firstName + (storage.me.read().lastName? ' ' + storage.me.read().lastName : '');
+
+		this.state.editedBook ={
+			title:'-',
+			isEditable: true,
+            date: (new Date()).getFullYear(),
+            identifier:'ISBN',
+            uploaderId: storage.me.read().id,
+            creator: fullName,
+        };
+		this.state.deleteWhenCancel = true;
+		var self = this;
+        $patchChanges();
+    }
+
+</script>

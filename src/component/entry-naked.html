@@ -1,0 +1,232 @@
+<span style.bind="calculateRootStyle($margin)">
+    <label if.bind="($glyph || $prompt) && (($type) == 'label' || (($type) != 'checkbox' && ($type) != 'hyperlink' && ($type) != 'hidden'))" class.bind="(($class ? $class : 'custom-entry-prompt' + ($deleted ? ' custom-deleted-text' : '')))" style.bind="$elementStyle" click.trigger="onPromptClick()">{{($prompt || $prompt == 0) ? $prompt:''}}<span if.bind="$glyph" class.bind="'glyphicon glyphicon-' + $glyph" ></span></label>
+    <div ref.name='collapsible' if.bind="(typeof($value) != 'undefined') && (($type) == 'label')" >
+        <label class="custom-label-value" click.trigger="onPromptClick()" style.bind="(@collapsible? 'display:inline !important' :'') + ';' + $elementStyle">{{@collapsed ? @valueShort : @valueLong}}</label>
+        <a if.bind="@collapsible" class="custom-label-value" click.trigger="onExpandText()">{{@collapsed ? ' (see more)' : ' (see less)'}}</a>
+    </div>
+    <input if.bind="isGeneric($type)" type.bind="$type" name.bind="$name" class.bind="($class ? $class : 'form-control ' + ($type=='button' ? 'btn btn-info btn-block' : 'input-sm'))" required.bind="$required" placeholder.bind="$placeholder" value.bind="setValue($value, $min, $max)" min.bind="$min" max.bind="$max" accept.bind="$accept" click.trigger="onButtonClicked()" focusout.trigger="onFocusOut()" change.trigger="onChange()" keyup.trigger="onKeyUp()" style.bind="($hidden ? 'visibility:hidden; position:absolute; left:0; top:0' : ($uppercase ? 'text-transform:uppercase' : $elementStyle?$elementStyle:''))" blob.bind="$blob" >
+    <textarea if.bind="($type) == 'textarea'" name.bind="$name" required.bind="$required" class="form-control input-sm" focusout.trigger="onFocusOut()" style.bind="$areastyle" created.trigger="onTextAreaCreated()">{{($value ? $value : '')}}</textarea>
+    <a if.bind="($type) == 'hyperlink'" href.bind="$href" class.bind="($class ? $class : 'custom-entry-prompt')" click.trigger="onHyperlinkClick()">{{$prompt}}</a>
+    <div if.bind="($type) == 'checkbox'" >
+        <input type="checkbox" name.bind="$name" id.bind="$name" autocomplete="off"  checked.bind="$checked" focusout.trigger="onFocusOut()" click.trigger="onCheckboxClick(event)"/>
+        <div class="btn-group" focusout.trigger="onFocusOut()">
+            <label for.bind="$name" class="btn btn-default btn-checkbox">
+                <span class="glyphicon glyphicon-ok" focusout.trigger="onFocusOut()"></span>
+                <span> </span>
+            </label>
+            <label for.bind="$name" class="btn btn-default active btn-checkbox" focusout.trigger="onFocusOut()">
+                {{$prompt}}
+            </label>
+        </div>
+    </div>
+    <div if.bind="($type) == 'select'" change.trigger="onChange()">
+        <select class="form-control input-sm" name.bind="$name" required.bind="$required" >
+            <option for.each="entry in $entries" value.bind="(typeof(entry.value)!='undefined'? entry.value:entry)" selected.bind="(typeof(entry.value)!='undefined'? entry.value:entry)==$value">{{typeof(entry.text) != 'undefined'?entry.text:entry}}</option>
+        </select>
+    </div>
+    <div if.bind="($type) == 'lookup'">
+        <input class="form-control input-sm" name.bind="$name+'-display'" data-minchars="1" required.bind="$required" created.trigger="initAwesomplete($value)" />
+        <input type="hidden" name.bind="$name" value.bind="$value" created.trigger="registerLookupField()"/>
+    </div>
+
+    <span if.bind="($type) == 'search'">
+        <div class="input-group">
+            <input type="text" class="form-control input-sm" name.bind="$name" created.trigger="onSearchFieldCreated()">
+            <span class="input-group-addon custom-input-group-addon" click.trigger="onClearSearchField()">
+                <span class="fa fa-times"></span>
+            </span>
+            <span class="input-group-addon custom-input-group-addon" click.trigger="onSearchStarted()">
+                <span class="fa fa-search"></span>
+            </span>
+        </div>
+    </span>
+    <label if.bind="@error && ($type) != 'hidden'" class="custom-entry-prompt custom-error-text">{{@error}}</label>
+</span>
+
+<script> /**/
+    function initState(props) {
+     //debugger;
+	    var state = {};
+        if(props.alert) props.alert.onError.subscribe(errorSelector.bind(this));
+        state.name = props.name;
+        state.error = null;
+        state.alias = props.alias;
+        state.entries = props.entries;
+
+        state.lookupDelimiter = props.lookupDelimiter;
+        state.multiple = props.multiple;
+
+	    //if(props.collapsible) debugger;
+        state.collapsible = !(!props.collapsible);
+        state.collapsedWords = state.collapsible ? isNaN(props.collapsible) ? 20: props.collapsible : 0;
+
+        state.valueLong = props.value;
+        if(state.valueLong && typeof(state.valueLong)=='string') state.valueLong = state.valueLong.replace(/<(?:.|\n)*?>/gm, ' ');
+
+        state.valueShort = state.collapsible && state.valueLong? state.valueLong.split(/(\s+)/).filter(function(b){return b.trim()}).slice(0, state.collapsedWords).join(' ') : state.valueLong;
+	    //state.valueShort = state.collapsible && state.valueLong? state.valueLong.split(' ').slice(0, state.collapsedWords).join(' ') : state.valueLong;
+	    state.valueShort += (state.valueLong && state && state.valueLong.length > state.valueShort.length? '...':'');
+	    state.collapsible = state.collapsible && (state.valueShort != state.valueLong);
+        state.collapsed=true;
+        state.rich = props.rich;
+
+	    return state;
+    }
+
+    function onPropertyChange(props){
+	    var state = this.state;
+
+	    if(props.value) state.valueLong = props.value.newValue;
+
+	    state.valueShort = state.collapsible && state.valueLong? state.valueLong.split(' ').slice(0, state.collapsedWords).join(' ') : state.valueLong;
+	    state.valueShort += (state.valueLong && state && state.valueLong.length > state.valueShort.length? '...':'');
+	    state.collapsible = state.collapsible && (state.valueShort != state.valueLong);
+	    state.collapsed=true;
+    }
+
+    function copyTextToTextArea(editor){
+    	this.state.textArea.value = editor.nicInstances[0].getContent();
+    	console.log(this.state.textArea.value);
+    	console.log(nicEditors.editors);
+    }
+    function onTextAreaCreated(){
+    	if(this.state.rich){
+    		this.state.textArea = this.target;
+		    var editors = nicEditors.allTextAreas({maxHeight: this.target.clientHeight, iconsPath:'asset/js/nicEdit/nicEditorIcons.gif'});
+		    editors[editors.length-1].addEvent('blur', copyTextToTextArea.bind(this, editors[editors.length-1]));
+        }
+    }
+    function onExpandText(){
+    	this.state.collapsed = !this.state.collapsed;
+    	$patchChanges('collapsible')
+    }
+    function onSearchFieldCreated(){
+    	this.state.searchField = this.target;
+    }
+
+    function onClearSearchField(){
+    	this.state.searchField.value = '';
+    }
+
+    function onSearchStarted(){
+    	this.emitEvent('search', this.state.searchField.value);
+    }
+
+    function initAwesomplete(value){
+    	setTimeout(actualInitAwesomplete.bind(this, value), 100);
+    }
+
+    function actualInitAwesomplete(value) {
+    	var options = {list:this.state.entries};
+    	if(this.state.multiple){
+    		options.filter = function(text, input) {
+                return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
+            };
+    		options.item = function(text, input){
+    			return Awesomplete.ITEM(text, input.match(/[^,]*$/)[0]);
+            };
+            options.multiple = true;
+        }
+        var as = new Awesomplete(this.target, options);
+        this.target.addEventListener('awesomplete-select', onAwesompleteSelect.bind(this));
+        this.state.awesompleteField = this.target;
+
+        as.replace = awesompleteReplace.bind(this);
+        if(as._list.length > 0 && as._list[0].label && as._list[0].value) {
+            var item = (as._list.find(function (x) {return x.value == value}));
+            if (item) {as.input.value = item.label;}
+            else {as.input.value = ''}
+        }
+        else {as.input.value = value;}
+        this.emitEvent('created');
+    }
+
+    function registerLookupField(){
+    	this.state.lookupField = this.target;
+    }
+    function awesompleteReplace(text){
+    	var t = text;
+    	if(this.state.lookupDelimiter) {
+		    t = text.label.split(this.state.lookupDelimiter);
+		    t.splice(-1)
+		    t = t.join(this.state.lookupDelimiter);
+	    }
+	    else if(this.state.multiple) {
+    		var before = this.target.value.match(/^.+,\s*|/)[0];
+    		t = before + t+ ", ";
+        }
+	    this.target.value = t;
+    }
+
+    function onAwesompleteSelect(event) {
+		//debugger;
+        this.state.lookupField.value = event.text.value ? event.text.value : event.text;
+    	//document.getElementsByName(this.state.name)[0].value = event.text.value ? event.text.value : event.text;
+		this.emitEvent('lookupSelected', event.text);
+	}
+
+    function calculateRootStyle(margin){
+    	var s = margin ? 'margin-right:' + margin : '';
+    	return s;
+    }
+
+    function onCreated(){
+        if(this.properties.alert) this.properties.alert.onError.subscribe(errorSelector.bind(this.target));
+    }
+
+    function errorSelector(errors) {
+    	this._state.error=null;
+    	if(errors) {
+		    for (var i in errors) {
+			    if ((this._state.name && errors[i].name == this._state.name) || (this._state.alias && errors[i].name == this._state.alias)) {
+			    	this._state.error = errors[i].message;
+			    	errors.splice(i, 1);
+			    	//return;
+			    }
+		    }
+	    }
+    }
+
+    function setValue(value, min, max){
+    	if(typeof(value) != 'undefined' && min && (value < min)) return min;
+        else if(typeof(value) != 'undefined' && max && (value > max)) return max;
+        else if(typeof(value) != 'undefined') return value;
+        else return '';
+    }
+
+	function isGeneric(type) {
+		return ('|textarea|label|checkbox|hyperlink|select|lookup|search|'.indexOf('|' + type + '|') < 0);
+	}
+
+    function onHyperlinkClick() {
+	    this.emitEvent('click');
+    }
+
+    function onPromptClick() {
+	    this.emitEvent('click');
+    }
+
+    function onButtonClicked() {
+	    this.emitEvent('click');
+    }
+
+    function onFocusOut() {
+		this.emitEvent("focusout");
+	}
+
+    function onChange() {
+	    this.emitEvent("change", this.target.value);
+    }
+
+    function onKeyUp() {
+	    this.emitEvent("keyUp", this.target.value);
+    }
+
+    function onCheckboxClick(event){
+		//debugger;
+		this.emitEvent("click", this.target.checked);
+    }
+
+</script>
+
+

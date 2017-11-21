@@ -1,0 +1,77 @@
+{
+	"type": "UserCollection",
+	"properties": {
+		"email": {
+			"name": "email",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "email",
+			"order": 0
+		},
+		"firstName": {
+			"name": "firstName",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "firstName",
+			"order": 1
+		},
+		"lastName": {
+			"name": "lastName",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "lastName",
+			"order": 2
+		},
+		"booksId": {
+			"name": "booksId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "booksId",
+			"order": 3
+		},
+		"isPublisher": {
+			"name": "isPublisher",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "isPublisher",
+			"order": 4
+		},
+		"isAdmin": {
+			"name": "isAdmin",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "isAdmin",
+			"order": 5
+		},
+		"isMember": {
+			"name": "isMember",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "isMember",
+			"order": 6
+		},
+		"needApproval": {
+			"name": "needApproval",
+			"type": "object",
+			"typeLabel": "object",
+			"required": false,
+			"id": "needApproval",
+			"order": 7
+		},
+		"birthYear": {
+			"name": "birthYear",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "birthYear",
+			"order": 8
+		}
+	}
+}

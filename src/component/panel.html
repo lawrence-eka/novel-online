@@ -1,0 +1,66 @@
+<inject from="/component/entry" name="entry"></inject>
+
+<div created.trigger="onCreated()">
+                <div click.trigger="onClick()">
+                    <div if.bind="$test || !$notitle || $title">
+                        <h4 class="form-signin-heading">
+                            <strong>{{($title ? $title : '')}}</strong>
+                            <div if.bind="$test">
+                                PANEL HEADER
+                            </div>
+                        </h4>
+                        <slot-view  name="title"></slot-view>
+                    </div>
+                    <div style.bind="$style" >
+                        {{$body ? $body : ''}}
+                        <div if.bind="$test">
+                            PANEL BODY
+                        </div>
+                        <slot-view name="body"></slot-view>
+                    </div>
+                    <div if.bind="@aspopup || $test || !$nofooter || $footer">
+                        <div if.bind="!@aspopup">
+                            {{$footer ? $footer : ''}}
+                            <div if.bind="$test">
+                                PANEL FOOTER
+                            </div>
+                            <slot-view  name="footer"></slot-view>
+                        </div>
+                        <div if.bind="@aspopup" class="row">
+                            <entry type="button" value="Close" divClass="col-xs-12 col-sm-12 col-md-12 col-lg-12" click.trigger="onClosePopup()"></entry>
+                        </div>
+                    </div>
+                </div>
+</div>
+
+<script>
+
+	function initState(props) {
+		return {
+			aspopup: props.aspopup != null,
+			aspopupscrollable: props.aspopup == 'scrollable',
+		};
+	}
+	function onCreated() {
+		if (this.state.aspopup) {
+            popupManager.create(this.target, this.state.aspopupscrollable);
+		}
+	}
+	function onClosePopup(){
+		if(this.state.aspopup) popupManager.close(this.emitEvent.bind(this, 'close'));
+	}
+
+    function onClick(){
+        //debugger;
+        if(this.target.nodeName == 'A') return;
+        this.emitEvent('click');
+    }
+
+    function isClickable(){
+        if(this.properties && this.properties.onclick){
+            return 'cursor:pointer';
+        }
+        return '';
+    }
+
+</script>

@@ -1,0 +1,139 @@
+<inject from="/rating/home" name="rating"></inject>
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/book-list/book-block" name="thumb"></inject>
+<inject from="/review/text" name="text"></inject>
+<inject from="/component/horizontal-line" name="line"></inject>
+
+<div>
+    <div class="container custom-std-anim" data.load="loadData()">
+        <div class="row book-row-centered">
+            <thumb unlimitedtitlewidth book.bind="@book" click.trigger="onRead()"></thumb>
+        </div>
+        <div class="row book-row-centered">
+            <rating name='rating' value.bind="@book.stars" max="5" showtext readonly></rating>
+        </div>
+        <div class="row">
+            <entry type="button" value="Read This!" click.trigger="onRead()"></entry>
+        </div>
+        <div class="row">
+            <entry type="button" value="Close" click.trigger="onClose()"></entry>
+        </div>
+        <entry type="label" naked prompt="Author" value.bind="@book.creator"></entry>
+        <entry type="label" naked prompt="Year" value.bind="@book.date?@book.date:'-'"></entry>
+        <entry type="label" naked prompt="Genre" value.bind="@book.genre?@book.genre:'-'"></entry>
+        <entry type="label" naked prompt="Description" value.bind="@book.description?@book.description:'-'" collapsible></entry>
+        <form>
+            <entry type="textarea" naked prompt="Your Review" name="review"></entry>
+            <div style="margin-bottom:10px;"></div>
+            <entry type="label" naked prompt="Your Rating"></entry>
+            <div style="font-size:2em;text-align:center;">
+                <rating name='stars' value.bind="@book.stars" max="5" showtext textstyle="font-size:0.75em"></rating>
+            </div>
+            <entry type="button" naked value="Post Review"click.trigger="onPostReview()"></entry>
+        </form>
+        <div style="margin-bottom:10px"></div>
+        <entry type="label" naked prompt.bind="@reviews.length ? 'What Others Said' : 'No review yet'"></entry>
+        <div for.each="r in @reviews">
+            <entry type="label" naked prompt.bind="(r.firstName + ' ' + r.lastName + ':').toTitleCase()"></entry>
+            <div style="font-size:0.75em;">
+                <rating name='rating' value.bind="r.stars" max="5" readonly></rating>
+            </div>
+            <entry type="label" naked value.bind="formatReview(r.review)" collapsible></entry>
+            <line></line>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initState(props){
+    	var state={};
+    	state.book = props.book;
+    	state.reviews = [];
+        return state;
+    }
+
+    function onRead(){
+        window.location.hash ="#app/reader.home:folder=upload?bookfiles:file=" + this.state.book.filename.split('.')[0]+ ":ext=epub";
+    }
+
+    function onClose(){
+    	window.history.back();
+    }
+    function formatReview(review){
+    	return '"' + review + '"';
+    }
+    function reviews(){
+    	console.log(this.state.reviews);
+    	return this.state.reviews;
+    }
+
+	function onPostReview() {
+		//debugger;
+        var e = this.target.form.elements;
+        var self = this;
+        var review = {
+        	review: e.review.value,
+            stars: e.stars.value,
+            bookId: this.state.book.id,
+            personId: storage.me.read().id,
+        }
+		console.log(review);
+        console.log(self.state.reviews);
+        dpd.reviews.post(review, function(result){
+        	window.location.reload();
+        })
+	}
+
+	function loadData(){
+    	var self = this;
+    	//debugger;
+    	return new Promise(function(resolve) {
+		    loadBook.bind(self)()
+                .then(loadReview.bind(self))
+                .then(function(reviews){
+		    	resolve(self.state.book);
+            });
+	    });
+    }
+
+	function loadBook(){
+		var self = this;
+		return new Promise(function(resolve){
+			if(!self.state.book){
+				return
+			}
+			else if(typeof self.state.book == 'object') {
+				resolve(self.state.book)
+                return;
+            }
+			dpd.books.get(self.state.book, function(book, err){
+                self.state.book = book;
+				if(self.state.book.subjects) {
+					self.state.book.genre='';
+					self.state.book.subjects.forEach(function(s){self.state.book.genre += ((self.state.book.genre ? ',  ' : '') + s)})
+				}
+				resolve(self.state.book);
+//				dpd.reviews.post({bookId:'07c143d7ee32f9ac', personId:'db6bf76fa4a4dafe', stars:Math.round(Math.random() * 50)/10, review:'It really blows my mind!'});
+//				dpd.reviews.post({bookId:'07c143d7ee32f9ac', personId:'36d83f1119ee6a27', stars:Math.round(Math.random() * 50)/10, review:'It really blows my mind!'});
+//				dpd.reviews.post({bookId:'07c143d7ee32f9ac', personId:'becd2c438a34d86a', stars:Math.round(Math.random() * 50)/10, review:'It really blows my mind!'});
+//				dpd.reviews.post({bookId:'07c143d7ee32f9ac', personId:'5ca89f884652488a', stars:Math.round(Math.random() * 50)/10, review:'It really blows my mind!'});
+//				dpd.reviews.post({bookId:'07c143d7ee32f9ac', personId:'c3c0c9953816bb34', stars:Math.round(Math.random() * 50)/10, review:'It really blows my mind!'});
+//				dpd.reviews.post({bookId:'07c143d7ee32f9ac', personId:'a1d7900b6708ebe6', stars:Math.round(Math.random() * 50)/10, review:'It really blows my mind!'});
+//				dpd.reviews.post({bookId:'07c143d7ee32f9ac', personId:'eab838164b7b684c', stars:Math.round(Math.random() * 50)/10, review:'It really blows my mind!'});
+//				dpd.reviews.post({bookId:'07c143d7ee32f9ac', personId:'a4c7d447bdba295e', stars:Math.round(Math.random() * 50)/10, review:'It really blows my mind!'});
+//				dpd.reviews.post({bookId:'07c143d7ee32f9ac', personId:'564462bdbd037800', stars:Math.round(Math.random() * 50)/10, review:'It really blows my mind!'});
+			});
+		})
+	}
+
+	function loadReview(book){
+		var self = this;
+		return new Promise(function(resolve) {
+            dpd.reviews.get({bookId: book.id, includeNames: true, $sort:{stars:-1, date:-1}}, function (reviews) {
+                self.state.reviews = reviews;
+                console.log('done reviews');
+                resolve(reviews);
+            })
+        });
+    }
+</script>

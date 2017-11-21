@@ -1,0 +1,66 @@
+<inject from="/component/panel" name="panel"></inject>
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/component/horizontal-line" name="line"></inject>
+
+<div>
+    <panel title.bind="$title" nofooter>
+        <div slot.name="body">
+            <form>
+                <div class="row">
+                    <entry type="text" prompt="Genre" name='genre' value.bind="$genre.genre" divClass="col col-xs-8 col-sm-8 col-md-8 col-lg-8" style="padding-right:0 !important"></entry>
+                    <entry type="number" prompt="Min.Age" name='minAge' value.bind="$genre.minAge" divClass="col col-xs-4 col-sm-4 col-md-4 col-lg-4 pull-right" style="padding-left:5px !important; text-align:right"></entry>
+                </div>
+                <div class="row">
+                    <span if.bind="$genre.genre" data.load="loadGenres()">
+                        <entry type="select" prompt="Merge With" name='mergeWith' entries.bind="data" divClass="col-xs-12 col-sm-12 col-md-12 col-lg-12" ></entry>
+                    </span>
+                    <entry type="checkbox" prompt="Approved" name='isApproved' checked.bind="$genre.isApproved" divClass="col-xs-12 col-sm-12 col-md-12 col-lg-12" ></entry>
+                    <entry type="button" value="Save" click.trigger="onSave()"  divClass="col-xs-6 col-sm-6 col-md-6 col-lg-6" ></entry>
+                    <entry type="button" value="Cancel" click.trigger="onCancel()"  divClass="col-xs-6 col-sm-6 col-md-6 col-lg-6" ></entry>
+                </div>
+            </form>
+        </div>
+    </panel>
+    <line></line>
+</div>
+
+<script>
+    function initState(props){
+    	return{
+    		genre:props.genre,
+        }
+    }
+
+    function loadGenres(){
+    	var self = this;
+    	return new Promise(function(resolve){
+    		dpd.genres.get({isApproved:true, id:{$ne:self.state.genre.id}, $sort:{genre:1}}, function(genres){
+                var result = [''];
+                genres.forEach(function(genre){
+                	if(!result.find(function(r){return r == genre.genre})) result.push(genre.genre);
+                })
+    			resolve(result);
+            })
+        })
+    }
+    function onSave(){
+    	var e = this.target.form.elements;
+    	var self = this;
+        var data = {
+        	id: this.state.genre.id,
+            genre: e.genre.value,
+            oldGenre: this.state.genre.genre,
+            minAge: e.minAge.value || 0,
+            isApproved: e.isApproved.checked,
+        }
+        if (e.mergeWith) data.mergeWith = e.mergeWith.value;
+
+        dpd.genres.post(data, function(result){
+        	self.emitEvent('save');
+        });
+    }
+
+    function onCancel() {
+    	this.emitEvent('cancel');
+    }
+</script>

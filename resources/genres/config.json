@@ -1,0 +1,29 @@
+{
+	"type": "Collection",
+	"properties": {
+		"genre": {
+			"name": "genre",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "genre",
+			"order": 0
+		},
+		"isApproved": {
+			"name": "isApproved",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "isApproved",
+			"order": 1
+		},
+		"minAge": {
+			"name": "minAge",
+			"type": "number",
+			"typeLabel": "number",
+			"required": true,
+			"id": "minAge",
+			"order": 2
+		}
+	}
+}

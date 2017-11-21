@@ -1,0 +1,41 @@
+<inject from="/rating/home" name="rating"></inject>
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/book-list/book-block" name="thumb"></inject>
+
+<div style="text-align:center;">
+    <form>
+        <div class="container custom-std-anim" data.load="loadBook($query)">
+            <div class="row book-row-centered">
+                <span for.each="item in data">
+                <thumb book.bind="item" click.trigger="onClick(event)"></thumb>
+            </span>
+            </div>
+        </div>
+        <div>
+            <rating name='rating' value="3.2" max="5" showtext readonly></rating>
+        </div>
+        <div style=" font-size:2em;">
+            <rating name='rating' value="3.2" max="5" showtext textstyle="font-size:0.75em"></rating>
+        </div>
+        <entry type="button" value="Post Review"click.trigger="onPostReview()"></entry>
+    </form>
+</div>
+
+<script>
+    function onPostReview() {
+    	debugger;
+	    console.log(this.target.form.elements);
+    }
+    function loadBook(query){
+	    var self = this;
+	    return new Promise(function(resolve){
+		    query = {$limit:1};
+		    dpd.books.get(query, function(books, err){
+			    console.log(books);
+			    self.state.currentTitle = books.length ? self.state.title : self.state.titlenobook;
+			    $patchChanges('title');
+			    resolve(books);
+		    });
+	    })
+    }
+</script>

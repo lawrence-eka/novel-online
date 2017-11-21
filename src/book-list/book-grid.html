@@ -1,0 +1,83 @@
+<inject from="/book-list/book-block" name="book-block"></inject>
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/book-list/filter-sort" name="filter"></inject>
+
+<div>
+    <filter if.bind="$filterable" apply.trigger="onApplyFilter(event)"></filter>
+    <div class="container">
+        <div class="row" ref.name="title">
+            <entry type="label" naked prompt.bind="@currentTitle"></entry>
+        </div>
+        <div data.load="loadBooks($manage)">
+            <div class="row book-row-centered">
+                <span for.each="item in @books">
+                    <book-block book.bind="item" click.trigger="onClick(event)"></book-block>
+                </span>
+            </div>
+            <span if.bind="@othersbooks && @othersbooks.length">
+                <div class="row">
+                    <entry type="label" naked prompt.bind="@titleothersbooks"></entry>
+                </div>
+                <div class="row book-row-centered">
+                    <span for.each="item in @othersbooks">
+                        <book-block book.bind="item" click.trigger="onClick(event)"></book-block>
+                    </span>
+                </div>
+            </span>
+        </div>
+    </div>
+</div>
+
+<script>
+	function initState(props){
+		//console.log(props);
+		return {
+			currentTitle: 'Fetching Data...',
+            title: props.title,
+            titlenobook: props.titlenobook,
+            titleothersbooks: props.titleothersbooks,
+            books: null,
+            othersbooks: null,
+            filter:null,
+        };
+	}
+
+    function onApplyFilter(event){
+		this.state.filter = event.data;
+	    console.log(this.state.filter);
+		$patchChanges();
+    }
+
+	function loadBooks(manage){
+		var self = this;
+
+        return new Promise(function(resolve){
+            var query = {
+            	manage: manage,
+            }
+
+            if(self.state.filter){
+            	query.search = self.state.filter;
+            	console.log(query.search);
+            }
+
+	        dpd.books.get(query, function(books, err){
+	        	self.state.currentTitle = books.length ? self.state.title : self.state.titlenobook;
+	        	$patchChanges('title');
+	        	if(self.state.titleothersbooks) {
+			        self.state.books = books.filter(function(b){return b.uploaderId == storage.me.read().id;});
+			        self.state.othersbooks = books.filter(function(b){return b.uploaderId != storage.me.read().id;});
+		        }
+		        else {
+	        		self.state.books = books;
+	        		self.state.othersbooks = null;
+		        }
+                resolve(self.state.books);
+	        });
+        })
+    }
+
+    function onClick(event){
+		this.emitEvent("click", event.data);
+    }
+</script>

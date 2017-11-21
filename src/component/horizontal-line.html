@@ -1,0 +1,18 @@
+<div>
+    <div style.bind="'height:' + @bottom + 'px !important; text-align:' + @align + ' !important;vertical-align:top !important'">
+        <div style.bind="'vertical-align:top !important; display:inline-block; height:' +@height + 'px !important;width:' + @width + '% !important;background: ' + @background + ';border:0 !important; border-top: 1px solid #ccc !important; margin-top:' + @top + 'px !important; margin-bottom: 0 !important; !important; padding:0 !important;'">
+        </div>
+    </div>
+</div>
+<script>
+    function initState(props){
+    	return{
+    		align: props.align || 'center',
+    		top: props.top || 0,
+            bottom: props.bottom || 10,
+            height: props.height || 1,
+            background: props.background || '#c0c0c0',
+            width: props.width || 25,
+        }
+    }
+</script>

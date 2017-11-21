@@ -1,0 +1,22 @@
+<inject from="/component/entry" name="entry"></inject>
+
+<span click.trigger="onClick($book)">
+    <div class="col-xs-6 col-sm-4 col-md-3 col-lg-3 custom-book-block" style.bind="$unlimitedtitlewidth ? 'margin-bottom:0 !important;':''">
+        <div class="row">
+            <div class="custom-book-cover">
+                <img class="img-fluid" src.bind="('thumbs/' + $book.thumb + '?rnd=' + Math.random())" style="max-width:100px"></img>
+            </div>
+        </div>
+        <div if.bind="!$unlimitedtitlewidth" class="custom-book-title">
+            <entry type="label" naked prompt.bind="$book.title"></entry>
+        </div>
+    </div>
+    <div if.bind="$unlimitedtitlewidth" class="custom-book-title" style="margin-bottom:5px;">
+        <entry type="label" naked prompt.bind="$book.title"></entry>
+    </div>
+</span>
+<script>
+    function onClick(event) {
+    	this.emitEvent('click', event);
+    }
+</script>

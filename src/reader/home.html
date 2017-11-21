@@ -1,0 +1,287 @@
+<inject from="/component/navbar" name="navbar"></inject>
+<inject from="/component/search-panel" name="search-panel"></inject>
+<inject from="/component/home-button" name="home"></inject>
+<inject from="/book-list/book-grid" name="books"></inject>
+
+<div ref.name="reader">
+    <div if.bind="@epub" class="custom-book-container" created.trigger="onContainerCreated()">
+        <span ref.name="navbar">
+            <navbar name='readerNavbar' mainMenu.bind="readerMenu" additionalicons.bind="@additionalIcons" iconClicked.trigger="onIconClicked(event)"></navbar>
+        </span>
+        <span ref.name="search">
+            <search-panel name="searchPanel" search.trigger="onSearch(event)"></search-panel>
+        </span>
+        <div name="bookPage" class="custom-book-page" created.trigger="onReaderCreated()">
+            <div name="pageContent" class="custom-book-page-content"></div>
+        </div>
+    </div>
+    <span if.bind="!@epub" ref.name="booklist">
+        <books filterable click.trigger="onBookListClicked(event)"></books>
+    </span>
+
+</div>
+
+<script>
+	var lock = false;
+	var tableOfContent = null;
+	var tableOfBookmarks = null;
+	var tableOfSearchResults=null;
+
+	var fontSize = 1.0;
+
+	function initState(props){
+		var state = {
+			epub: props.folder && props.file && props.ext ? props.folder.replaceAll('?', '/') + '/' + props.file + '.' + props.ext : '',
+		}
+
+		state.additionalIcons = [
+			{icon:"fa fa-bookmark-o normal-icon", name:"bookmark"},
+			{icon:"fa fa-text-height smaller-icon", name:"reduceFont"},
+			{icon:"fa fa-text-height normal-icon", name:"increaseFont"},
+			{icon:"fa fa-search normal-icon", name:"search"},
+			{icon:"fa fa-adjust normal-icon", name:"adjust"},
+			{icon:"fa fa-times normal-icon pull-right", name:"close"},
+		];
+
+		//Book.open(state.epub); // Books can be opened later
+		//debugger;
+
+		return state;
+	}
+
+	function onBookListClicked(event) {
+		//debugger;
+		window.location.hash="#app/review.home:book=" + event.data.id;
+		//this.state.epub = 'upload/bookfiles/' + event.data.filename;
+		console.log(this.state.epub);
+		$patchChanges('reader');
+    }
+
+    function onSearch(event){
+		//console.log('here', event.data);
+        search(event.data).then(function(result){
+            tableOfSearchResults = result;
+        });
+
+		updateSearchBarLocation.bind(this)(true);
+    }
+
+	function search(text) {
+		return new Promise(function(resolve){
+			var result = [];
+			var promises = [];
+
+			window.reader.book.toc.forEach(function(t){
+				promises.push(window.reader.book.chapter(t.href).loaded);
+			});
+
+			Promise.all(promises).then(function(babs){
+				//
+				babs.forEach(function(bab){
+					result = result.concat(bab.find(text))
+				});
+				resolve(result);
+			});
+		})
+	}
+
+	function updateSearchBarLocation(toggle){
+	    var hasNavbar = !this.state.navbar.classList.contains('hide-navbar');
+	    var hasSearchPanel = !(this.state.searchPanel.classList.contains('panel-slider-closed-no-navbar') || this.state.searchPanel.classList.contains('panel-slider-closed'));
+	    if(toggle) hasSearchPanel = !hasSearchPanel;
+	    var searchPanelClass = !hasSearchPanel? hasNavbar ? 'panel-slider-closed' : 'panel-slider-closed-no-navbar' : !hasNavbar? 'panel-slider-no-navbar' : '';
+	    console.log(hasNavbar, hasSearchPanel, searchPanelClass);
+	    this.state.searchPanel.classList.remove('panel-slider-closed', 'panel-slider-closed-no-navbar', 'panel-slider-no-navbar');
+	    if(searchPanelClass) this.state.searchPanel.classList.add(searchPanelClass);
+    }
+
+    function reloadPage(){
+	    window.location.hash = "#app/reader.home";
+    }
+
+    function onIconClicked(event){
+    	var newFontSize = fontSize;
+    	if(event.data == 'close'){
+    		//this.state.epub = '';
+            popupManager.close(reloadPage);
+        }
+        else if(event.data=='search'){
+		    updateSearchBarLocation.bind(this)(true);
+	    }
+	    else if(event.data=='reduceFont') {
+		    newFontSize = ((fontSize * 10) - 1) / 10;
+	    }
+	    else if(event.data=='increaseFont') {
+		    newFontSize = ((fontSize * 10) + 1) / 10;
+	    }
+	    else if(event.data=='bookmark') {
+		    var cfi = window.reader.book.getCurrentLocationCfi();
+		    var bookmarked = window.reader.isBookmarked(cfi);
+		    var icon = this.state.additionalIcons.find(function (i) {return i.name == 'bookmark'});
+
+		    if(bookmarked === -1) { //-- Add bookmark
+			    window.reader.addBookmark(cfi);
+			    icon.icon = "fa fa-bookmark normal-icon";
+			    var curPage = window.reader.book.renderer.currentRenderedPage();
+			    var maxPage = window.reader.book.renderer.pagesInCurrentChapter();
+			    var spine = window.reader.book.spine.find(function(s){return s.index == window.reader.book.spinePos});
+			    var toc = window.reader.book.toc.find(function(t){return t.spinePos == window.reader.book.spinePos});
+			    var label = (maxPage > 1 ? 'Pg.' + curPage + '/' + maxPage + ' of ' : '');
+			    label += (label ? '"' : '') + (toc && toc.label ? toc.label : spine.id) + (label ? '"' : '');
+			    tableOfBookmarks = tableOfBookmarks || [];
+			    tableOfBookmarks.push({
+			    	label:label,
+                    addr:cfi,
+                    cfi:cfi,
+                });
+		    } else { //-- Remove Bookmark
+			    window.reader.removeBookmark(cfi);
+			    icon.icon = "fa fa-bookmark-o normal-icon";
+			    tableOfBookmarks = tableOfBookmarks.filter(function(b){return b.cfi != cfi});
+		    }
+		    $patchChanges('navbar');
+    	}
+    	else if(event.data='adjust'){
+        	var page = document.getElementsByName("bookPage")[0];
+		    page.classList.toggle('custom-book-page-inverted');
+		    var content = document.getElementsByName("pageContent")[0];
+		    content.classList.toggle('custom-book-page-content-inverted');
+		    window.reader.book.setStyle('color', content.classList.contains('custom-book-page-content-inverted')? 'lightgrey':'black');
+        }
+
+	    if(newFontSize != fontSize) {
+    		fontSize = newFontSize;
+		    this.state.additionalIcons.find(function (i) {return i.name == 'reduceFont'}).disabled = fontSize <= 0.11;
+		    this.state.additionalIcons.find(function (i) {return i.name == 'increaseFont'}).disabled = fontSize >= 9.99;
+		    window.reader.book.setStyle("font-size", fontSize + "em");
+		    $patchChanges('navbar');
+	    }
+    }
+
+    function onLocationChanged(data){
+	    this.state.additionalIcons.find(function (i) {return i.name == 'bookmark'}).icon = window.reader.isBookmarked(data) != -1 ? "fa fa-bookmark normal-icon" : "fa fa-bookmark-o normal-icon";
+	    $patchChanges('navbar');
+    }
+
+	function onContainerCreated() {
+    	this.state.navbar = document.getElementsByName('readerNavbar')[0];
+		this.state.searchPanel = document.getElementsByName('searchPanel')[0];
+		this.state.panel = popupManager.create(this.target, false, "custom-book-reader-container");
+		this.state.navbar.classList.toggle('show-navbar');
+		this.state.searchPanel.classList.add('panel-slider', 'panel-slider-closed');
+	}
+
+    function mouseClicked(e){
+        this.state.navbar.classList.toggle('hide-navbar');
+        this.state.panel.classList.toggle('custom-book-reader-container-no-navbar');
+        updateSearchBarLocation.bind(this)();
+    }
+
+    function arrowKeys(e){
+	    if(lock) return;
+	    if(e.keyCode == 38) {
+		    reader.book.prevPage();
+		    lock = true;
+		    setTimeout(function() {lock = false;}, 100);
+		    e.preventDefault();
+		    return false;
+	    }
+	    if(e.keyCode == 40) {
+		    reader.book.nextPage();
+		    lock = true;
+		    setTimeout(function() {lock = false;}, 100);
+		    e.preventDefault();
+		    return false;
+	    }
+    }
+
+	function onReaderCreated() {
+		//Book.renderTo("reader");
+        //debugger;
+        var self = this;
+		EPUBJS.Hooks.register("beforeChapterDisplay").pageTurns = function(callback, renderer){
+			//debugger;
+			renderer.setStyle("-webkit-user-select", "none");
+			renderer.setStyle("user-select", "none");
+			renderer.setStyle("-khtml-user-select", "none");
+			renderer.setStyle("-ms-user-select", "none");
+			renderer.setStyle("-moz-user-select", "none");
+
+			renderer.doc.addEventListener('keydown', arrowKeys, false);
+			renderer.doc.addEventListener('click', mouseClicked.bind(self), false);
+
+			if(callback) callback();
+		};
+
+		var self = this;
+		window.reader = ePubReader(this.state.epub, {generatePagination:false}, document.getElementsByName("pageContent")[0]);
+		window.reader.book.getToc().then(function(toc){
+			tableOfContent = toc;
+			$patchChanges('navbar');
+		});
+		//window.reader.book.generatePagination();
+		window.reader.book.on('renderer:locationChanged', onLocationChanged.bind(this));
+	}
+
+	function readerMenu (){
+		var me = storage.me.read();
+		var menuReader = [
+            {
+            	default:true,
+	            icon:"fa fa-bars smaller-icon",
+                name:"tocDropDown",
+                menu: function() {
+            		var menu = [];
+	                if(tableOfContent) {
+		                tableOfContent.forEach(function(c){menu.push({long:c.label, addr:c.cfi, cfi:c.cfi,})});
+	                }
+	                return menu;
+                },
+                onClick: function(path){
+	                if(path != undefined) {
+		                if(path == '') {
+			                if(storage.me.read()) {
+				                dpd.users.logout(function (err) {
+					                //debugger;
+					                storage.me.erase();
+					                window.location.hash = '#app';
+				                });
+			                }
+			                else window.location.hash = '#app/user.login-form';
+		                } else {
+			                window.reader.book.gotoCfi(path);
+		                }
+		                return;
+	                }
+                },
+
+            },
+            {
+	            icon:"fa fa-bookmark smaller-icon",
+                name:"bookmarkDropDown",
+                menu: function() {
+	            	var menu = [];
+	            	if(tableOfBookmarks) {
+	            		tableOfBookmarks.forEach(function(b){menu.push({long:b.label, addr:b.addr, cfi:b.cfi,})});
+                    }
+                    return menu;
+	            },
+	            onClick: function(path){window.reader.book.gotoCfi(path)},
+            },
+            {
+	            icon:"fa fa-search smaller-icon",
+                name:"searchDropDown",
+	            menu: function() {
+		            var menu = [];
+		            if(tableOfSearchResults) {
+			            tableOfSearchResults.forEach(function(s){menu.push({long:s.excerpt, addr:s.cfi, cfi:s.cfi,})});
+		            }
+		            return menu;
+	            },
+	            onClick: function(path){window.reader.book.gotoCfi(path)},
+            }
+        ];
+        /**/
+		return menuReader;
+	}
+</script>

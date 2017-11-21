@@ -1,0 +1,110 @@
+ <div name.bind="$name" class="navbar-fixed-top navbar-transition">
+    <span ref.name="burger">
+        <div class="custom-navbar navbar-header" click.trigger="hideMenu()">
+            <i class.bind='whatButton()' click.trigger="onClick()" ></i>
+            <span for.each="icon in @additionalIcons">
+                <i class.bind="(icon.icon + (icon.disabled? ' disabled-color' : ''))" click.trigger="icon.click ? icon.click() : onIconClicked(icon.name, icon.disabled)"></i>
+            </span>
+        </div>
+        <div class.bind="drawerCover()" click.trigger="hideMenu()">
+            <div id="navbar" class.bind="drawerClass()">
+                <ul if.bind="@mainMenu()[0].menu" class="list-group">
+                    <li class="horizontal-icons" for.each="menu in @mainMenu()">
+                        <i class.bind="(menu.icon + (menu.disabled? ' disabled-color' : menu.name == @activeMenuSet.name ? ' active-color' : ''))" click.trigger="onMenuSetIconClicked(menu.name, menu.disabled)"></i>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav menu">
+                    <li for.each="menu in @activeMenu()">
+                        <a click.trigger="@onMenuClicked(menu.addr)" class="custom-mouse-pointer">{{(menu.long ? menu.long : menu.short)}}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </span>
+</div>
+<script>
+    function initState(props){
+    	//console.log('navbar init state');
+    	var state = {};
+    	state.mainMenu = props.mainMenu;
+
+    	if(state.mainMenu().length && state.mainMenu()[0] && state.mainMenu()[0].menu) {
+    		state.activeMenuSet = state.mainMenu().find(function(m){return m.default}) || state.mainMenu()[0];
+    		state.activeMenu = state.activeMenuSet.menu;
+    		state.onMenuClicked = state.activeMenuSet.onClick;
+        }
+        else {
+    		state.activeMenu = state.mainMenu;
+    		state.onMenuClicked = state.mainMenu;
+        }
+
+        state.additionalIcons = props.additionalicons;
+	    return state;
+
+    }
+
+    function onPropertyChange(props){
+    	//console.log('navbar on property change');
+    	if(props.additionalicons){
+    		this.state.additionalIcons = props.additionalicons.newValue;
+        }
+    }
+	var isDrawerOpened;
+    var doNotCloseDrawer;
+
+	function whatButton(){
+		var result = [];
+		result.push('fa');
+		if(isDrawerOpened){
+			result.push('fa-chevron-up');
+		}else{
+			result.push('fa-bars');
+		}
+		result.push('burger-button');
+		return result.join(' ');
+	}
+
+	function drawerClass(){
+		if(isDrawerOpened)return "drawer expand";
+        else return "drawer";
+    }
+
+    function drawerCover() {
+	    if(isDrawerOpened)return "screen-cover";
+	    else return 'screen-uncover';
+    }
+
+    function onIconClicked(iconName, isDisabled){
+	    if(!isDisabled) this.emitEvent('iconClicked', iconName);
+    }
+
+    function onMenuSetIconClicked(menuName, isDisabled){
+	    doNotCloseDrawer = true;
+	    if(menuName != this.state.activeMenuSet.name) {
+		    this.state.activeMenuSet = this.state.mainMenu().find(function(m){return m.name == menuName}) || this.state.mainMenu()[0];
+		    this.state.activeMenu = this.state.activeMenuSet.menu;
+		    this.state.onMenuClicked = this.state.activeMenuSet.onClick;
+		    //debugger;
+		    $patchChanges("burger");
+        }
+    }
+
+    function onClick() {
+	    doNotCloseDrawer = true;
+		isDrawerOpened = !isDrawerOpened;
+		this.emitEvent('click', isDrawerOpened);
+		$patchChanges("burger");
+	}
+
+    function hideMenu(){
+    	if(!doNotCloseDrawer) {
+		    isDrawerOpened = false;
+		    $patchChanges("burger");
+	    }
+	    else {
+    		doNotCloseDrawer = false;
+        }
+    }
+</script>
+
+

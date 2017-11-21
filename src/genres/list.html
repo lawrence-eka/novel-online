@@ -1,0 +1,54 @@
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/component/horizontal-line" name="line"></inject>
+<inject from="/genres/editor" name="editor"></inject>
+
+<div>
+    <div ref.name="list" data.load="loadGenres()">
+        <div style="font-size: 1.5em;font-weight:700;">
+            <entry type="label" naked prompt="List of Genres"></entry>
+        </div>
+        <span for.each="genre in data">
+            <span if.bind="(!@edited || genre.id != @edited.id)" >
+                <line top="10" width="100" bottom="20"></line>
+                <div class="row">
+                    <div class="col col-xs-8 col-sm-8 col-md-8 col-lg-8" style="padding-right:0 !important">
+                        <entry type="label" naked prompt="Genre" value.bind="genre.genre"></entry>
+                    </div>
+                    <div class="col col-xs-4 col-sm-4 col-md-4 col-lg-4 pull-right" style="text-align:right">
+                        <entry type="label" naked prompt="Min.Age" value.bind="genre.minAge"></entry>
+                    </div>
+                </div>
+                <div class="row" style.bind="('text-align:center;color:' + (genre.isApproved?'darkblue':'darkred'))">
+                    <entry type="label" prompt.bind="('Status: ' + (genre.isApproved?'Approved':'Proposed'))"></entry>
+                </div>
+                <entry type="button" naked value="Edit/Delete" click.trigger="onEdit(genre)"></entry>
+            </span>
+            <editor if.bind='@edited && @edited.id == genre.id' genre.bind="genre" cancel.trigger="onEndEdit()" save.trigger="onEndEdit()"></editor>
+        </span>
+    </div>
+</div>
+<script>
+    function initState(props){
+    	return {
+    		edited: props.edited,
+        }
+    }
+    function loadGenres(){
+    	return new Promise(function(resolve){
+		    dpd.genres.get({$sort:{isApproved:1, genre:1,}}, function (genres){
+                resolve(genres);
+		    })
+        })
+    }
+
+    function onEdit(event){
+    	//this.emitEvent('edit', event);
+        this.state.edited = event;
+        $patchChanges('list');
+    }
+
+    function onEndEdit(){
+	    this.state.edited = null;
+	    $patchChanges('list');
+    }
+</script>

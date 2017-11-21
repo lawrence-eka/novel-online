@@ -1,0 +1,96 @@
+<inject from="/component/panel" name="panel"></inject>
+<inject from="/component/entry" name="entry"></inject>
+<inject from="/component/home-button" name="home"></inject>
+<inject from="/book-list/book-grid" name="books"></inject>
+<inject from="/upload/info-editor" name="info"></inject>
+
+<div>
+    <span if.bind="!@editedBook">
+        <panel title="Upload Book">
+            <div slot.name="body">
+                <form>
+                    <entry type="file" name="newBook" accept.bind="('.zip' + (storage.me.read().isAdmin? ',.epub':''))" hidden change.trigger="onBookSelected()" ></entry>
+                    <div class="row">
+                        <entry type="button" name="btnSave" value="Upload New Book" divClass="col-xs-12 col-sm-12 col-md-12 col-lg-12" click.trigger="onUpload()"></entry>
+                    </div>
+                </form>
+            </div>
+        </panel>
+        <div style="text-align:center" if.bind="storage.me.read().isAdmin">
+            <form>
+                <entry type="checkbox" name="includeOthers" prompt="Manage Other's Books" click.trigger="onIncludeOthers()"></entry>
+            </form>
+        </div>
+        <span ref.name="booklist">
+            <books title="Your Books:" titlenobook="You haven't uploaded any book yet." titleothersbooks="Other's Books:" manage.bind='@manage' click.trigger="onEditInfo(event)"></books>
+        </span>
+    </span>
+    <span if.bind="@editedBook">
+        <info book.bind="@editedBook" deletewhencancel.bind="@deleteWhenCancel" save.trigger="onEndEditInfo()" delete.trigger="onEndEditInfo()" cancel.trigger="onEndEditInfo()"></info>
+    </span>
+</div>
+
+<script>
+    function initState(props){
+    	var state = {};
+    	state.editedBook = null;
+    	state.deleteWhenCancel = false;
+    	state.manage = 'own';
+    	return state;
+    }
+
+    function onEditInfo(event){
+    	this.state.editedBook = event.data;
+	    this.state.deleteWhenCancel = false;
+    	$patchChanges();
+    }
+
+    function onEndEditInfo(){
+    	this.state.editedBook = null;
+	    navbarManager.removeAdditionalIcons();
+    	$patchChanges();
+    }
+
+    function onIncludeOthers() {
+    	this.state.manage = (this.target.form.elements.includeOthers.checked? 'all':'own');
+    	$patchChanges();
+    }
+
+    function onUpload(){
+	    document.getElementsByName('newBook')[0].click();
+    }
+    function onBookSelected(){
+	    var fd = new FormData();
+	    var form = this.target.form;
+	    var self = this;
+	    var book = (form.elements.newBook.files[0]);
+	    //console.log(book);
+	    form.reset();
+	    fd.append("uploadedFile", book)
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('PUT', '/bookfiles');
+        xhr.onload = function () {
+            var response = JSON.parse(this.responseText);
+
+            if(this.status < 300) {
+                var results = [];
+                response.forEach(function(file){
+                	dpd.processbook.put(file, file, function(result, err){
+                		self.state.editedBook = result;
+		                self.state.deleteWhenCancel = true;
+                        $patchChanges();
+                    })
+                });
+
+            } else {
+                //console.log(response);
+            }
+        };
+        xhr.onerror = function (err) {
+            console.log(err);
+        }
+        xhr.send(fd);
+
+    }
+</script>

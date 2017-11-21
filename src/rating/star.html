@@ -1,0 +1,29 @@
+<div>
+    <div style.bind="('position:relative; width:' + @width + 'px; height:' + @width + 'px;')" click.trigger="onClick(event)" mousemove.trigger="onMouseMove(event)">
+        <i class="fa fa-star-o" style="position:absolute; color:lightgrey" ></i>
+        <i class="fa fa-star" style.bind="('position:absolute; width:' + @partial +  'px;overflow:hidden;color:orange')"></i>
+    </div>
+</div>
+<script>
+    function initState(props){
+    	return {
+    		readonly: props.readonly,
+    		width: parseInt(window.getComputedStyle(this).getPropertyValue('font-size')),
+    		partial: (parseInt(window.getComputedStyle(this).getPropertyValue('font-size')) * props.value),
+    		value: props.value,
+        };
+    }
+
+    function onPropertyChange(props){
+        if(props.value) this.state.partial = (parseInt(window.getComputedStyle(this.component).getPropertyValue('font-size')) * props.value.newValue);
+        if(props.readonly) this.state.readonly = props.readonly.newValue;
+    }
+
+    function onClick(event){
+        if(!this.state.readonly)this.emitEvent('click', event.offsetX/this.state.width);
+    }
+
+    function onMouseMove(event){
+    	if(!this.state.readonly && event.buttons) this.emitEvent('click', event.offsetX/this.state.width);
+    }
+</script>
