@@ -119,9 +119,9 @@
 				        console.log('error', err);
 			        }
 			        else {
-				        self.state.book.filename = result.id;
+				        self.state.book.filename = result.id + '.epub';
 				        self.state.book.id = result.id;
-				        self.state.book.thumb = self.state.book.thumb || self.state.book.id;
+				        self.state.book.thumb = self.state.book.thumb || (self.state.book.id + '.jpg');
 				        //saveFile(e.pict.blob, self.state.book.filename, self.state.book.thumb).then(function (result) {
 				        saveThumb(e.pict.blob, self.state.book.thumb).then(function (result) {
 					        if (result) {

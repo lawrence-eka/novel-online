@@ -1,31 +1,22 @@
 var fs = require('fs-extra');
-var f = 'public/thumbs/' + this.thumb;
+//var f = 'public/thumbs/' + this.thumb;
 
 if(this.fileId) {
     dpd.bookfiles.del(this.fileId, function(result, err){
-        if(err) console.log(err);
+        if(err) console.log('bookfiles.del.fileid', err);
     });
 }
 if(this.thumbFileId) {
-    dpd.thumbfiles.del(this.thumbFileId, function(result){
-        deleteFolder(f);
+    dpd.thumbfiles.del(this.thumbFileId, function(result, err){
+        if(err) console.log('bookfiles.del.thumbfileid', err);
     });
 }
-else deleteFolder(f);
+
+if(this.filename) fs.remove('public/upload/bookfiles/' + this.filename);
+if(this.thumb) fs.remove('public/thumb' + this.thumb);
 
 dpd.chapters.get({bookId:this.id}, function(chapters){
     chapters.forEach(function(c){
         dpd.chapters.del(c.id);
     })
 })
-
-function deleteFolder(f){
-    fs.remove(f, function(err){
-        if(err) {
-            console.log('Delete Book:', err);
-        }
-        else {
-            console.log('Delete Book: success.');
-        }
-    })
-}

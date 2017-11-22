@@ -30,7 +30,7 @@ if(ctx.method=='GET') {
             }
         }
         query.isPublished = true;
-        query.isEditable = false;
+        //query.isEditable = false;
         dpd.genres.get({minAge:{$gt:(new Date()).getFullYear() - me.birthYear}, isApproved:true, $fields:{genre:1}}, function(gs){
             var nin = {$nin:gs.map(function(g){return g.genre})};
             if(!query.subjects) {

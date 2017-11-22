@@ -1,29 +1,13 @@
 {
 	"type": "Collection",
 	"properties": {
-		"fileId": {
-			"name": "fileId",
-			"type": "string",
-			"typeLabel": "string",
-			"required": false,
-			"id": "fileId",
-			"order": 0
-		},
-		"thumbFileId": {
-			"name": "thumbFileId",
-			"type": "string",
-			"typeLabel": "string",
-			"required": false,
-			"id": "thumbFileId",
-			"order": 1
-		},
 		"title": {
 			"name": "title",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
 			"id": "title",
-			"order": 2
+			"order": 0
 		},
 		"titleSortBy": {
 			"name": "titleSortBy",
@@ -31,14 +15,30 @@
 			"typeLabel": "string",
 			"required": false,
 			"id": "titleSortBy",
-			"order": 3
+			"order": 1
 		},
-		"uploaderId": {
-			"name": "uploaderId",
+		"thumbFileId": {
+			"name": "thumbFileId",
 			"type": "string",
 			"typeLabel": "string",
-			"required": true,
-			"id": "uploaderId",
+			"required": false,
+			"id": "thumbFileId",
+			"order": 2
+		},
+		"thumb": {
+			"name": "thumb",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "thumb",
+			"order": 3
+		},
+		"fileId": {
+			"name": "fileId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "fileId",
 			"order": 4
 		},
 		"filename": {
@@ -49,13 +49,29 @@
 			"id": "filename",
 			"order": 5
 		},
+		"filesize": {
+			"name": "filesize",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "filesize",
+			"order": 6
+		},
 		"creator": {
 			"name": "creator",
 			"type": "string",
 			"typeLabel": "string",
 			"required": false,
 			"id": "creator",
-			"order": 6
+			"order": 7
+		},
+		"uploaderId": {
+			"name": "uploaderId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "uploaderId",
+			"order": 8
 		},
 		"isPublished": {
 			"name": "isPublished",
@@ -63,7 +79,7 @@
 			"typeLabel": "boolean",
 			"required": false,
 			"id": "isPublished",
-			"order": 7
+			"order": 9
 		},
 		"identifier": {
 			"name": "identifier",
@@ -71,7 +87,7 @@
 			"typeLabel": "string",
 			"required": true,
 			"id": "identifier",
-			"order": 8
+			"order": 10
 		},
 		"date": {
 			"name": "date",
@@ -79,7 +95,7 @@
 			"typeLabel": "string",
 			"required": false,
 			"id": "date",
-			"order": 9
+			"order": 11
 		},
 		"subjects": {
 			"name": "subjects",
@@ -87,7 +103,7 @@
 			"typeLabel": "array",
 			"required": false,
 			"id": "subjects",
-			"order": 10
+			"order": 12
 		},
 		"description": {
 			"name": "description",
@@ -95,22 +111,6 @@
 			"typeLabel": "string",
 			"required": false,
 			"id": "description",
-			"order": 11
-		},
-		"filesize": {
-			"name": "filesize",
-			"type": "number",
-			"typeLabel": "number",
-			"required": false,
-			"id": "filesize",
-			"order": 12
-		},
-		"thumb": {
-			"name": "thumb",
-			"type": "string",
-			"typeLabel": "string",
-			"required": false,
-			"id": "thumb",
 			"order": 13
 		},
 		"stars": {
