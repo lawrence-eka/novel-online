@@ -5,11 +5,12 @@
         <a if.bind="@collapsible" class="custom-label-value" click.trigger="onExpandText()">{{@collapsed ? ' (see more)' : ' (see less)'}}</a>
     </div>
     <input if.bind="isGeneric($type)" type.bind="$type" name.bind="$name" class.bind="($class ? $class : 'form-control ' + ($type=='button' ? 'btn btn-info btn-block' : 'input-sm'))" required.bind="$required" placeholder.bind="$placeholder" value.bind="setValue($value, $min, $max)" min.bind="$min" max.bind="$max" accept.bind="$accept" click.trigger="onButtonClicked()" focusout.trigger="onFocusOut()" change.trigger="onChange()" keyup.trigger="onKeyUp()" style.bind="($hidden ? 'visibility:hidden; position:absolute; left:0; top:0' : ($uppercase ? 'text-transform:uppercase' : $elementStyle?$elementStyle:''))" blob.bind="$blob" >
-    <textarea if.bind="($type) == 'textarea'" name.bind="$name" required.bind="$required" class="form-control input-sm" focusout.trigger="onFocusOut()" style.bind="$areastyle" created.trigger="onTextAreaCreated()">{{($value ? $value : '')}}</textarea>
+    <textarea if.bind="($type) == 'textarea'" name.bind="$name" required.bind="$required" class.bind="($class || $rich)?$class:'form-control input-sm'" focusout.trigger="onFocusOut()" style.bind="$areastyle" created.trigger="onTextAreaCreated()">{{($value ? $value : '')}}</textarea>
     <a if.bind="($type) == 'hyperlink'" href.bind="$href" class.bind="($class ? $class : 'custom-entry-prompt')" click.trigger="onHyperlinkClick()">{{$prompt}}</a>
     <div if.bind="($type) == 'checkbox'" >
-        <input type="checkbox" name.bind="$name" id.bind="$name" autocomplete="off"  checked.bind="$checked" focusout.trigger="onFocusOut()" click.trigger="onCheckboxClick(event)"/>
-        <div class="btn-group" focusout.trigger="onFocusOut()">
+        <input type="checkbox" name.bind="$name" id.bind="$name" autocomplete="off"  checked.bind="$checked" focusout.trigger="onFocusOut()" click.trigger="onCheckboxClick(event)" class.bind="$class" style.bind="$style"/>
+        <label if.bind="$prompt && $traditional" class.bind="'custom-label-value ' + $class" style.bind="$style + '; margin:0 !important; padding-left:2px !important;padding-right:2px !important' ">{{$prompt}}</label>
+        <div if.bind="!$traditional" class="btn-group" focusout.trigger="onFocusOut()">
             <label for.bind="$name" class="btn btn-default btn-checkbox">
                 <span class="glyphicon glyphicon-ok" focusout.trigger="onFocusOut()"></span>
                 <span> </span>
@@ -25,7 +26,7 @@
         </select>
     </div>
     <div if.bind="($type) == 'lookup'">
-        <input class="form-control input-sm" name.bind="$name+'-display'" data-minchars="1" required.bind="$required" created.trigger="initAwesomplete($value)" />
+        <input class="form-control input-sm" name.bind="$name+'-display'" data-minchars="1" required.bind="$required" created.trigger="initAwesomplete($value)" focusout.trigger="onFocusOut()"/>
         <input type="hidden" name.bind="$name" value.bind="$value" created.trigger="registerLookupField()"/>
     </div>
 
@@ -39,6 +40,9 @@
                 <span class="fa fa-search"></span>
             </span>
         </div>
+    </span>
+    <span if.bind="($type) == 'radio'">
+        <input type
     </span>
     <label if.bind="@error && ($type) != 'hidden'" class="custom-entry-prompt custom-error-text">{{@error}}</label>
 </span>
@@ -92,7 +96,7 @@
     function onTextAreaCreated(){
     	if(this.state.rich){
     		this.state.textArea = this.target;
-		    var editors = nicEditors.allTextAreas({maxHeight: this.target.clientHeight, iconsPath:'asset/js/nicEdit/nicEditorIcons.gif'});
+		    var editors = nicEditors.allTextAreas({minHeight: this.target.clientHeight, maxHeight: this.target.clientHeight, iconsPath:'asset/js/nicEdit/nicEditorIcons.gif'});
 		    editors[editors.length-1].addEvent('blur', copyTextToTextArea.bind(this, editors[editors.length-1]));
         }
     }

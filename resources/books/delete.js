@@ -13,7 +13,7 @@ if(this.thumbFileId) {
 }
 
 if(this.filename) fs.remove('public/upload/bookfiles/' + this.filename);
-if(this.thumb) fs.remove('public/thumb' + this.thumb);
+if(this.thumb) fs.remove('public/upload/thumbs/' + this.thumb);
 
 dpd.chapters.get({bookId:this.id}, function(chapters){
     chapters.forEach(function(c){

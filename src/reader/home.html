@@ -1,13 +1,9 @@
-<inject from="/component/navbar" name="navbar"></inject>
 <inject from="/component/search-panel" name="search-panel"></inject>
 <inject from="/component/home-button" name="home"></inject>
 <inject from="/book-list/book-grid" name="books"></inject>
 
 <div ref.name="reader">
     <div if.bind="@epub" class="custom-book-container" created.trigger="onContainerCreated()">
-        <span ref.name="navbar">
-            <navbar name='readerNavbar' mainMenu.bind="readerMenu" additionalicons.bind="@additionalIcons" iconClicked.trigger="onIconClicked(event)"></navbar>
-        </span>
         <span ref.name="search">
             <search-panel name="searchPanel" search.trigger="onSearch(event)"></search-panel>
         </span>
@@ -22,7 +18,6 @@
 </div>
 
 <script>
-	var lock = false;
 	var tableOfContent = null;
 	var tableOfBookmarks = null;
 	var tableOfSearchResults=null;
@@ -33,15 +28,6 @@
 		var state = {
 			epub: props.folder && props.file && props.ext ? props.folder.replaceAll('?', '/') + '/' + props.file + '.' + props.ext : '',
 		}
-
-		state.additionalIcons = [
-			{icon:"fa fa-bookmark-o normal-icon", name:"bookmark"},
-			{icon:"fa fa-text-height smaller-icon", name:"reduceFont"},
-			{icon:"fa fa-text-height normal-icon", name:"increaseFont"},
-			{icon:"fa fa-search normal-icon", name:"search"},
-			{icon:"fa fa-adjust normal-icon", name:"adjust"},
-			{icon:"fa fa-times normal-icon pull-right", name:"close"},
-		];
 
 		//Book.open(state.epub); // Books can be opened later
 		//debugger;
@@ -59,18 +45,19 @@
 
     function onSearch(event){
 		//console.log('here', event.data);
+        var self = this;
         search(event.data).then(function(result){
             tableOfSearchResults = result;
+	        updateSearchBarLocation.bind(self)(true);
+	        navbarManager.showMenu('searchDropDown');
         });
 
-		updateSearchBarLocation.bind(this)(true);
     }
 
 	function search(text) {
 		return new Promise(function(resolve){
 			var result = [];
 			var promises = [];
-
 			window.reader.book.toc.forEach(function(t){
 				promises.push(window.reader.book.chapter(t.href).loaded);
 			});
@@ -86,121 +73,168 @@
 	}
 
 	function updateSearchBarLocation(toggle){
-	    var hasNavbar = !this.state.navbar.classList.contains('hide-navbar');
+		//var hasNavbar = !this.state.navbar.classList.contains('hide-navbar');
+		var hasNavbar = navbarManager.isNavbarVisible();
+		//console.log(hasNavbar);
 	    var hasSearchPanel = !(this.state.searchPanel.classList.contains('panel-slider-closed-no-navbar') || this.state.searchPanel.classList.contains('panel-slider-closed'));
 	    if(toggle) hasSearchPanel = !hasSearchPanel;
 	    var searchPanelClass = !hasSearchPanel? hasNavbar ? 'panel-slider-closed' : 'panel-slider-closed-no-navbar' : !hasNavbar? 'panel-slider-no-navbar' : '';
-	    console.log(hasNavbar, hasSearchPanel, searchPanelClass);
 	    this.state.searchPanel.classList.remove('panel-slider-closed', 'panel-slider-closed-no-navbar', 'panel-slider-no-navbar');
 	    if(searchPanelClass) this.state.searchPanel.classList.add(searchPanelClass);
     }
 
-    function reloadPage(){
+    function onCloseIconClicked(){
 	    window.location.hash = "#app/reader.home";
     }
+    function onSearchIconClicked(){
+	    updateSearchBarLocation.bind(this)(true);
+    }
+	function onReduceFontIconClicked(iconName, isDisabled){
+    	if(isDisabled) return;
+		var newFontSize = ((fontSize * 10) - 1) / 10;
+		fontSize = newFontSize;
+		this.state.additionalIcons.find(function (i) {return i.name == 'reduceFont'}).disabled = fontSize <= 0.11;
+		this.state.additionalIcons.find(function (i) {return i.name == 'increaseFont'}).disabled = fontSize >= 9.99;
+		window.reader.book.setStyle("font-size", fontSize + "em");
+	}
+	function onIncreaseFontIconClicked(iconName, isDisabled){
+		if(isDisabled)return;
+		var newFontSize = ((fontSize * 10) + 1) / 10;
+		fontSize = newFontSize;
+		this.state.additionalIcons.find(function (i) {return i.name == 'reduceFont'}).disabled = fontSize <= 0.11;
+		this.state.additionalIcons.find(function (i) {return i.name == 'increaseFont'}).disabled = fontSize >= 9.99;
+		window.reader.book.setStyle("font-size", fontSize + "em");
+	}
+    function onAdjustIconClicked(){
+	    var page = document.getElementsByName("bookPage")[0];
+	    page.classList.toggle('custom-book-page-inverted');
+	    var content = document.getElementsByName("pageContent")[0];
+	    content.classList.toggle('custom-book-page-content-inverted');
+	    window.reader.book.setStyle('color', content.classList.contains('custom-book-page-content-inverted')? 'lightgrey':'black');
+    }
+    function onBookmarkIconClicked(){
+	    var cfi = window.reader.book.getCurrentLocationCfi();
+	    var bookmarked = window.reader.isBookmarked(cfi);
+	    var icon = this.state.additionalIcons.find(function (i) {return i.name == 'bookmark'});
 
-    function onIconClicked(event){
-    	var newFontSize = fontSize;
-    	if(event.data == 'close'){
-    		//this.state.epub = '';
-            popupManager.close(reloadPage);
-        }
-        else if(event.data=='search'){
-		    updateSearchBarLocation.bind(this)(true);
-	    }
-	    else if(event.data=='reduceFont') {
-		    newFontSize = ((fontSize * 10) - 1) / 10;
-	    }
-	    else if(event.data=='increaseFont') {
-		    newFontSize = ((fontSize * 10) + 1) / 10;
-	    }
-	    else if(event.data=='bookmark') {
-		    var cfi = window.reader.book.getCurrentLocationCfi();
-		    var bookmarked = window.reader.isBookmarked(cfi);
-		    var icon = this.state.additionalIcons.find(function (i) {return i.name == 'bookmark'});
-
-		    if(bookmarked === -1) { //-- Add bookmark
-			    window.reader.addBookmark(cfi);
-			    icon.icon = "fa fa-bookmark normal-icon";
-			    var curPage = window.reader.book.renderer.currentRenderedPage();
-			    var maxPage = window.reader.book.renderer.pagesInCurrentChapter();
-			    var spine = window.reader.book.spine.find(function(s){return s.index == window.reader.book.spinePos});
-			    var toc = window.reader.book.toc.find(function(t){return t.spinePos == window.reader.book.spinePos});
-			    var label = (maxPage > 1 ? 'Pg.' + curPage + '/' + maxPage + ' of ' : '');
-			    label += (label ? '"' : '') + (toc && toc.label ? toc.label : spine.id) + (label ? '"' : '');
-			    tableOfBookmarks = tableOfBookmarks || [];
-			    tableOfBookmarks.push({
-			    	label:label,
-                    addr:cfi,
-                    cfi:cfi,
-                });
-		    } else { //-- Remove Bookmark
-			    window.reader.removeBookmark(cfi);
-			    icon.icon = "fa fa-bookmark-o normal-icon";
-			    tableOfBookmarks = tableOfBookmarks.filter(function(b){return b.cfi != cfi});
-		    }
-		    $patchChanges('navbar');
-    	}
-    	else if(event.data='adjust'){
-        	var page = document.getElementsByName("bookPage")[0];
-		    page.classList.toggle('custom-book-page-inverted');
-		    var content = document.getElementsByName("pageContent")[0];
-		    content.classList.toggle('custom-book-page-content-inverted');
-		    window.reader.book.setStyle('color', content.classList.contains('custom-book-page-content-inverted')? 'lightgrey':'black');
-        }
-
-	    if(newFontSize != fontSize) {
-    		fontSize = newFontSize;
-		    this.state.additionalIcons.find(function (i) {return i.name == 'reduceFont'}).disabled = fontSize <= 0.11;
-		    this.state.additionalIcons.find(function (i) {return i.name == 'increaseFont'}).disabled = fontSize >= 9.99;
-		    window.reader.book.setStyle("font-size", fontSize + "em");
-		    $patchChanges('navbar');
+	    if(bookmarked === -1) { //-- Add bookmark
+		    window.reader.addBookmark(cfi);
+		    icon.icon = "fa fa-bookmark normal-icon";
+		    var curPage = window.reader.book.renderer.currentRenderedPage();
+		    var maxPage = window.reader.book.renderer.pagesInCurrentChapter();
+		    var spine = window.reader.book.spine.find(function(s){return s.index == window.reader.book.spinePos});
+		    var toc = window.reader.book.toc.find(function(t){return t.spinePos == window.reader.book.spinePos});
+		    var label = (maxPage > 1 ? 'Pg.' + curPage + '/' + maxPage + ' of ' : '');
+		    label += (label ? '"' : '') + (toc && toc.label ? toc.label : spine.id) + (label ? '"' : '');
+		    tableOfBookmarks = tableOfBookmarks || [];
+		    tableOfBookmarks.push({
+			    label:label,
+			    addr:cfi,
+			    cfi:cfi,
+		    });
+	    } else { //-- Remove Bookmark
+		    window.reader.removeBookmark(cfi);
+		    icon.icon = "fa fa-bookmark-o normal-icon";
+		    tableOfBookmarks = tableOfBookmarks.filter(function(b){return b.cfi != cfi});
 	    }
     }
 
     function onLocationChanged(data){
+    	//debugger;
 	    this.state.additionalIcons.find(function (i) {return i.name == 'bookmark'}).icon = window.reader.isBookmarked(data) != -1 ? "fa fa-bookmark normal-icon" : "fa fa-bookmark-o normal-icon";
-	    $patchChanges('navbar');
+	    navbarManager.patchChanges();
     }
 
 	function onContainerCreated() {
-    	this.state.navbar = document.getElementsByName('readerNavbar')[0];
+		this.state.additionalIcons = [
+			{icon:"fa fa-bookmark-o normal-icon", name:"bookmark", click:onBookmarkIconClicked.bind(this),},
+			{icon:"fa fa-text-height smaller-icon", name:"reduceFont", click:onReduceFontIconClicked.bind(this)},
+			{icon:"fa fa-text-height normal-icon", name:"increaseFont", click:onIncreaseFontIconClicked.bind(this)},
+			{icon:"fa fa-search normal-icon", name:"search", click:onSearchIconClicked.bind(this)},
+			{icon:"fa fa-adjust normal-icon", name:"adjust", click:onAdjustIconClicked.bind(this)},
+			{icon:"fa fa-times normal-icon pull-right", name:"close", click:onCloseIconClicked.bind(this)},
+		];
+
+		navbarManager.set(readerMenu, this.state.additionalIcons, false);
 		this.state.searchPanel = document.getElementsByName('searchPanel')[0];
-		this.state.panel = popupManager.create(this.target, false, "custom-book-reader-container");
-		this.state.navbar.classList.toggle('show-navbar');
+		this.state.panel = this.target;
 		this.state.searchPanel.classList.add('panel-slider', 'panel-slider-closed');
 	}
 
-    function mouseClicked(e){
-        this.state.navbar.classList.toggle('hide-navbar');
-        this.state.panel.classList.toggle('custom-book-reader-container-no-navbar');
-        updateSearchBarLocation.bind(this)();
-    }
+	function Swipe(elem, callback) {
+		var self = this;
+		this.callback = callback;
 
-    function arrowKeys(e){
-	    if(lock) return;
-	    if(e.keyCode == 38) {
-		    reader.book.prevPage();
-		    lock = true;
-		    setTimeout(function() {lock = false;}, 100);
-		    e.preventDefault();
-		    return false;
-	    }
-	    if(e.keyCode == 40) {
-		    reader.book.nextPage();
-		    lock = true;
-		    setTimeout(function() {lock = false;}, 100);
-		    e.preventDefault();
-		    return false;
-	    }
-    }
+		function handleEvent(e) {
+			self.touchHandler(e);
+		}
+
+		elem.addEventListener('touchstart', handleEvent, false);
+		elem.addEventListener('touchmove', handleEvent, false);
+		elem.addEventListener('touchend', handleEvent, false);
+	}
+	Swipe.prototype.touches = {
+		"touchstart": {"x":-1, "y":-1},
+		"touchmove" : {"x":-1, "y":-1},
+		"touchend"  : false,
+		"direction" : "undetermined"
+	};
+	Swipe.prototype.touchHandler = function (event) {
+		var touch;
+		if (typeof event !== 'undefined'){
+			if (typeof event.touches !== 'undefined') {
+				touch = event.touches[0];
+				switch (event.type) {
+					case 'touchstart':
+					case 'touchmove':
+						this.touches[event.type].x = touch.pageX;
+						this.touches[event.type].y = touch.pageY;
+						break;
+					case 'touchend':
+						this.touches[event.type] = true;
+						var x = (this.touches.touchstart.x - this.touches.touchmove.x),
+							y = (this.touches.touchstart.y - this.touches.touchmove.y);
+						if (x < 0) x /= -1;
+						if (y < 0) y /= -1;
+						if (x > y)
+							this.touches.direction = this.touches.touchstart.x < this.touches.touchmove.x ? "right" : "left";
+						else
+							this.touches.direction = this.touches.touchstart.y < this.touches.touchmove.y ? "down" : "up";
+						this.callback(event, this.touches.direction);
+						break;
+				}
+			}
+		}
+	};
 
 	function onReaderCreated() {
-		//Book.renderTo("reader");
-        //debugger;
         var self = this;
 		EPUBJS.Hooks.register("beforeChapterDisplay").pageTurns = function(callback, renderer){
-			//debugger;
+			function mouseClicked(e){
+				navbarManager.toggleNavbar();
+				//this.state.navbar.classList.toggle('hide-navbar');
+				this.state.panel.classList.toggle('custom-book-container-no-navbar');
+				updateSearchBarLocation.bind(this)();
+			}
+
+			var lock = false;
+			function arrowKeys(e){
+				if(lock) return;
+				if(e.keyCode == 38) {
+					reader.book.prevPage();
+					lock = true;
+					setTimeout(function() {lock = false;}, 100);
+					e.preventDefault();
+					return false;
+				}
+				if(e.keyCode == 40) {
+					reader.book.nextPage();
+					lock = true;
+					setTimeout(function() {lock = false;}, 100);
+					e.preventDefault();
+					return false;
+				}
+			}
 			renderer.setStyle("-webkit-user-select", "none");
 			renderer.setStyle("user-select", "none");
 			renderer.setStyle("-khtml-user-select", "none");
@@ -210,6 +244,27 @@
 			renderer.doc.addEventListener('keydown', arrowKeys, false);
 			renderer.doc.addEventListener('click', mouseClicked.bind(self), false);
 
+			new Swipe(renderer.doc, function(event, direction) {
+				event.preventDefault();
+                switch (direction) {
+					case "up":
+						reader.book.prevPage();
+						// Handle Swipe Up
+						break;
+					case "down":
+						reader.book.nextPage();
+						// Handle Swipe Down
+						break;
+					case "left":
+						reader.book.nextPage();
+						// Handle Swipe Left
+						break;
+					case "right":
+						reader.book.prevPage();
+						// Handle Swipe Right
+						break;
+				}
+			});
 			if(callback) callback();
 		};
 
@@ -221,6 +276,7 @@
 		});
 		//window.reader.book.generatePagination();
 		window.reader.book.on('renderer:locationChanged', onLocationChanged.bind(this));
+
 	}
 
 	function readerMenu (){

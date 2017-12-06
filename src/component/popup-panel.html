@@ -1,0 +1,83 @@
+<inject from="/component/entry" name="entry"></inject>
+
+<div created.trigger="onCreated()" deleted.trigger="onDeleted()">
+    <div class="container custom-container-layout custom-std-anim" style.bind="isClickable()">
+        <div class="row centered-form no-top-margin">
+            <div class="form-panel col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="panel panel-default ">
+                    <div class="panel-heading custom-panel-layout" if.bind="$test || !$notitle || $title">
+                        <h4 class="panel-title">
+                            {{($title ? $title : '')}}
+                            <div if.bind="$test">
+                                PANEL HEADER
+                            </div>
+                        </h4>
+                        <slot-view></slot-view>
+                    </div>
+                    <div class="panel-body custom-panel-layout" style.bind="$style" >
+                        {{$body ? $body : ''}}
+                        <div if.bind="$test">
+                            PANEL BODY
+                        </div>
+                        <slot-view name="body"></slot-view>
+                    </div>
+                    <div class="panel-footer custom-panel-layout">
+                        <div class="row">
+                            <entry type="button" value.bind="$buttontext || 'Close'" divClass="col-xs-12 col-sm-12 col-md-12 col-lg-12" click.trigger="onClosePopup()"></entry>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+	function initState(props) {
+		return {
+			popup: null,
+			popupPanel:null,
+		};
+	}
+
+	function doClose(){
+		this.state.popup.style.visibility = 'hidden';
+		document.getElementsByName('universe')[0].removeChild(this.state.popup);
+		this.state.popup = null;
+
+		this.emitEvent('close');
+	}
+
+	function onClosePopup(){
+		this.state.popupPanel.className += ' custom-fadeout-anim';
+
+		var panels = document.getElementsByName('universe')[0].children;
+		panels[panels.length - 2].classList.remove('blur');
+		setTimeout(doClose.bind(this), 250);
+		//this.emitEvent('close');
+	}
+	function onCreated(){
+        this.state.popupPanel = this.target;
+        this.state.popup = document.createElement('div');
+
+        var panels = document.getElementsByName('universe')[0].children;
+        panels[panels.length - 1].classList.add('blur');
+
+        document.getElementsByName('universe')[0].appendChild(this.state.popup);
+        this.state.popup.className="container centered-form popupContainer"
+        this.state.popup.style.visibility = 'visible';
+        this.state.popup.appendChild(this.target);
+	}
+	function onDeleted(){
+		debugger;
+        //document.getElementsByName('motherNature')[0].className = "not-blur";
+	}
+
+	function isClickable(){
+		if(this.properties && this.properties.onclick){
+			return 'cursor:pointer';
+		}
+		return '';
+	}
+
+</script>

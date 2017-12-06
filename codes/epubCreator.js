@@ -13,7 +13,7 @@ exports.create = function(book, chapters, epubPath, epubFilename) {
 			author: book.creator,
 			description: book.descriptions,
 			date: book.lastUpdatedDate,
-			cover: book.thumb?("public/thumbs/" + book.thumb) : '',
+			cover: book.thumb?("public/upload/thumbs/" + book.thumb) : '',
 			subjects: book.subjects.map(function(s){return {subject:s}}),
 		});
 		var cn = 1;
@@ -21,9 +21,21 @@ exports.create = function(book, chapters, epubPath, epubFilename) {
 		var xhtml2 = '</title></head><body>';
 		var xhtml3 = '</body></html>';
 		chapters.forEach(function(c){
+			var data = xhtml1 + c.title + xhtml2;
+			if(c.printChapterNumber || c.printTitle) {
+				data += '<div style="text-align:center"><strong>';
+				if (c.printChapterNumber) {
+					data += c.seqNo + '. ';
+				}
+				if (c.printTitle) {
+					data += c.title;
+				}
+				data += '</strong></div><br/><br/>';
+			}
+			data += c.content + xhtml3;
 			epub.add(
 				'chapter_' + cn++ + '.xhtml',
-				xhtml1 + c.title + xhtml2 + c.content + xhtml3,
+				data,
 				{
 					title: c.title,
 					toc: true,

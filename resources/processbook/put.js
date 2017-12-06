@@ -1,11 +1,13 @@
+console.log('on put', query);
+
 var bookInfo = require('../codes/bookInfo.js');
 var zipExtractor = require('../codes/zipExtractor.js');
 var az = require('adm-zip');
 var tn = require('node-thumbnail').thumb;
 var fe = require('fs-extra');
 
-var thumbFolder = 'public/thumbs/' + query.filename;
-var realThumbFolder = 'public/thumbs/'; 
+var thumbFolder = 'public/upload/thumbs/' + query.filename;
+var realThumbFolder = 'public/upload/thumbs/'; 
 
 var epub = 'public/upload/bookfiles/' + query.filename;
 
@@ -31,11 +33,11 @@ if(epub.substring(epub.lastIndexOf('.') + 1).toLowerCase() == 'epub') {
                 quiet: true,
             }, function(files, err, stdout, stderr) {
                 if(!err){
-                    fe.move(thumbName, realThumbFolder + query.id, function(err){
+                    fe.move(thumbName, realThumbFolder + query.bookId + '.jpg', function(err){
                         if(!err) {
                             fe.remove(thumbFolder, function(err){
                                 if(!err) {
-                                    info.cover = query.id;
+                                    info.cover = query.bookId + '.jpg';
                                     saveEpubInfo(info, query);
                                 }
                                 else setResult(null, err);
@@ -59,10 +61,7 @@ if(epub.substring(epub.lastIndexOf('.') + 1).toLowerCase() == 'epub') {
 else { //a zip of text files is uploaded
     zipExtractor.retrieve(epub, query.originalFilename).then(function(book){
         if(book){
-            dpd.books.post({
-                title: book.title,
-                //fileId: query.id,
-                //filename: query.filename,
+            dpd.books.put(query.bookId, {
                 isPublished: false,
                 isEditable:true,
                 identifier:'ISBN',
@@ -71,11 +70,35 @@ else { //a zip of text files is uploaded
                 date: (new Date(book.earliestTime)).getFullYear(),
             }, function(result, err){
                 book.chapter.forEach(function(c){
+                    var content = replaceAll(c.content, '\r\n', '\n').trim();
+                    var firstLine = content.substring(0, content.indexOf('\n')).trim();
+                    var title = c.title;
+                    
+                    if(query.processParams) {
+                        if(query.processParams.titleFrom == 'firstLine') title = firstLine;
+
+                        if(query.processParams.titleCut) {
+                            var from = query.processParams.titleCut.from || '';
+                            var to = query.processParams.titleCut.to || '';
+                            title = title.substring(title.indexOf(from) + from.length);
+                            var end = title.indexOf(to) || title.length
+                            title = title.substring(0, end);
+                        }
+
+                        if(query.processParams.addTitle=='yes' && query.processParams.titleFrom=='fileName') {
+                            content = title + '\n' + content;
+                        }
+                        else if(query.processParams.addTitle=='no' && query.processParams.titleFrom=='firstLine') {
+                            content = content.substring(content.indexOf('\n') + 1).trim();
+                        }
+                    }
+
+                    
                     dpd.chapters.post({
                         bookId: result.id,
                         seqNo: c.seqNo,
-                        title: c.title,
-                        content: replaceAll(replaceAll(c.content, '\r\n', '<br/>'), '\n', '<br/>'),
+                        title: title,
+                        content: replaceAll(content, '\n', '<br/>'),
                     }, function(r, e){
                         if(e){
                             setResult(null, e);
@@ -101,7 +124,7 @@ function saveEpubInfo(info, addInfo){
     info.filename = addInfo.filename;
     info.isPublished=true;
     info.filesize = addInfo.filesize;
-    dpd.books.post(info, function(result, err){
+    dpd.books.put(addInfo.bookId, info, function(result, err){
         setResult(result, err);
     })
 }

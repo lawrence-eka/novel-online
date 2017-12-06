@@ -3,9 +3,13 @@
 <inject from="/component/home-button" name="home"></inject>
 <inject from="/book-list/book-grid" name="books"></inject>
 <inject from="/upload/info-editor" name="info"></inject>
+<inject from="/chapter-processor-params/home" name="processParams"></inject>
 
 <div>
     <span if.bind="!@editedBook">
+        <span ref.name="processParams">
+            <processParams if.bind="setProcessParamsFor" result.trigger="onProcessParamSet(event)" file.bind="setProcessParamsFor"></processParams>
+        </span>
         <panel title="Upload Book">
             <div slot.name="body">
                 <form>
@@ -31,66 +35,94 @@
 </div>
 
 <script>
-    function initState(props){
-    	var state = {};
-    	state.editedBook = null;
-    	state.deleteWhenCancel = false;
-    	state.manage = 'own';
-    	return state;
-    }
+    var setProcessParamsFor = '';
 
-    function onEditInfo(event){
-    	this.state.editedBook = event.data;
-	    this.state.deleteWhenCancel = false;
-    	$patchChanges();
-    }
+	function initState(props){
+		var state = {};
+		state.editedBook = null;
+		state.deleteWhenCancel = false;
+		state.manage = 'own';
+		return state;
+	}
 
-    function onEndEditInfo(){
-    	this.state.editedBook = null;
-	    navbarManager.removeAdditionalIcons();
-    	$patchChanges();
-    }
+	function onEditInfo(event){
+		this.state.editedBook = event.data;
+		this.state.deleteWhenCancel = false;
+		$patchChanges();
+	}
 
-    function onIncludeOthers() {
-    	this.state.manage = (this.target.form.elements.includeOthers.checked? 'all':'own');
-    	$patchChanges();
-    }
+	function onEndEditInfo(){
+		this.state.editedBook = null;
+		navbarManager.removeAdditionalIcons();
+		$patchChanges();
+	}
 
-    function onUpload(){
-	    document.getElementsByName('newBook')[0].click();
-    }
-    function onBookSelected(){
-	    var fd = new FormData();
-	    var form = this.target.form;
-	    var self = this;
-	    var book = (form.elements.newBook.files[0]);
-	    //console.log(book);
-	    form.reset();
-	    fd.append("uploadedFile", book)
+	function onIncludeOthers() {
+		this.state.manage = (this.target.form.elements.includeOthers.checked? 'all':'own');
+		$patchChanges();
+	}
 
-        var xhr = new XMLHttpRequest();
-        xhr.open('PUT', '/bookfiles');
-        xhr.onload = function () {
-            var response = JSON.parse(this.responseText);
+	function onUpload(){
+		document.getElementsByName('newBook')[0].click();
+	}
+	function onBookSelected(){
+		var form = this.target.form;
+		//var self = this;
+		var book = (form.elements.newBook.files[0]);
 
-            if(this.status < 300) {
-                var results = [];
-                response.forEach(function(file){
-                	dpd.processbook.put(file, file, function(result, err){
-                		self.state.editedBook = result;
-		                self.state.deleteWhenCancel = true;
-                        $patchChanges();
-                    })
-                });
-
-            } else {
-                //console.log(response);
-            }
+		var filename = book.name.substring(book.name.lastIndexOf('.') + 1);
+		var title = book.name;
+		title = (title.lastIndexOf('.') > 0 ? title.substring(0, title.lastIndexOf('.')) : title).toTitleCase()
+		form.reset();
+		this.state.uploadingBook = {
+			book: book,
+            filename: filename,
+            title: title,
         };
-        xhr.onerror = function (err) {
-            console.log(err);
-        }
-        xhr.send(fd);
+		setProcessParamsFor = title + '.' + filename;
+		$patchChanges("processParams");
+		//uploadBook.bind(this)();
+	}
 
+	function onProcessParamSet(event){
+		setProcessParamsFor = '';
+		uploadBook.bind(this)(event.data);
     }
+
+	function uploadBook(processParams){
+		var book = this.state.uploadingBook.book;
+		var filename = this.state.uploadingBook.filename;
+		var title = this.state.uploadingBook.title;
+		var fd = new FormData();
+		var self = this;
+		dpd.books.post({title:title, uploaderId: storage.me.read().id, identifier:'-'}, function(info){
+			filename = info.id + '.' + filename;
+			fd.append("uploadedFile", book, filename)
+			var xhr = new XMLHttpRequest();
+			xhr.open('PUT', '/bookfiles');
+			xhr.onload = function () {
+				var response = JSON.parse(this.responseText);
+				if(this.status < 300) {
+					var results = [];
+					response.forEach(function(file){
+						file.bookId = info.id;
+						file.processParams = processParams;
+						dpd.processbook.put(file, file, function(result, err){
+							self.state.editedBook = result;
+							self.state.deleteWhenCancel = true;
+							$patchChanges();
+						})
+					});
+
+				} else {
+					//console.log(response);
+				}
+			};
+			xhr.onerror = function (err) {
+				console.log(err);
+			}
+			xhr.send(fd);
+		})
+
+	}
 </script>

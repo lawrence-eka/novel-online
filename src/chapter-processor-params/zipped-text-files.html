@@ -1,0 +1,109 @@
+<div>
+    <form created.trigger="onResult($unbuttoned)" change.trigger="onResult($unbuttoned)">
+        <div>
+            <label class="custom-entry-prompt">Pick Title From</label>
+        </div>
+
+        <div style.bind="outerDivStyle">
+            <div style.bind="radioDivStyle">
+                <input type="radio" name="titleFrom" value='fileName' checked/>
+            </div>
+            <div style.bind="labelDivStyle">
+                <label class="custom-label-value" style.bind="firstLabelStyle">File Name</label>
+            </div>
+        </div>
+        <div style.bind="outerDivStyle">
+            <div style.bind="radioDivStyle">
+                <input type="radio" name="titleFrom" value='firstLine' />
+            </div>
+            <div style.bind="labelDivStyle">
+                <label class="custom-label-value" style.bind="firstLabelStyle">First Line of Text</label>
+            </div>
+        </div>
+
+        <div>
+            <label class="custom-entry-prompt">Include Title in Text</label>
+        </div>
+        <div style.bind="outerDivStyle">
+            <div style.bind="radioDivStyle">
+                <input type="radio" name="addTitle" value='yes'/>
+            </div>
+            <div style.bind="labelDivStyle">
+                <label class="custom-label-value" style.bind="firstLabelStyle">Yes</label>
+            </div>
+        </div>
+        <div style.bind="outerDivStyle">
+            <div style.bind="radioDivStyle">
+                <input type="radio" name="addTitle" value='no' checked/>
+            </div>
+            <div style.bind="labelDivStyle">
+                <label class="custom-label-value" style.bind="firstLabelStyle">No</label>
+            </div>
+        </div>
+
+        <div>
+            <label class="custom-entry-prompt">Title Cut</label>
+        </div>
+        <div style.bind="outerDivStyle">
+            <div style.bind="radioDivStyle">
+                <input type="radio" name="titleCut" value='all' checked click.trigger="onTakeAll()" />
+            </div>
+            <div style.bind="labelDivStyle">
+                <label class="custom-label-value" style.bind="firstLabelStyle">Take Everything</label>
+            </div>
+        </div>
+        <div style.bind="outerDivStyle">
+            <div style.bind="radioDivStyle">
+                <input type="radio" name="titleCut" value='between' />
+            </div>
+            <div style.bind="labelDivStyle">
+                <label class="custom-label-value pull-left" style.bind="firstLabelStyle">Between</label>
+                <label class="custom-label-value pull-right" style.bind="firstLabelStyle"><i>(empty = from start)</i></label>
+                <input type="text" name="from" class="form-control input-sm col" style.bind="secondLabelStyle" keypress.trigger="onBetweenSet()"/>
+                <label class="custom-label-value pull-left" style.bind="secondLabelStyle">and</label>
+                <label class="custom-label-value pull-right" style.bind="secondLabelStyle"><i>(empty = to the end)</i></label>
+                <input type="text" name="to" class="form-control input-sm col" style.bind="secondLabelStyle" keypress.trigger="onBetweenSet()"/>
+            </div>
+        </div>
+
+        <div style.bind="buttonDivStyle" if.bind="!$unbuttoned">
+            <input type="button" class="form-control btn btn-info btn-block" value="Apply" click.trigger="onApply()"/>
+        </div>
+    </form>
+</div>
+
+<script>
+	var firstLabelStyle="margin-top:3px; margin-bottom:0;";
+	var secondLabelStyle="margin-top:3px !important; margin-bottom:0 !important;";
+	var outerDivStyle="display:flex; margin-top:-2px !important;";
+	var radioDivStyle="display:inline-block; vertical-align:top;";
+	var labelDivStyle="flex-grow:1;";
+	var buttonDivStyle="padding-top:10px";
+
+	function initState(props){
+        return {};
+    }
+	function onApply(){
+		onResult.bind(this)(true);
+	}
+
+	function onResult(sendMessage){
+		if(!sendMessage) return;
+
+		var e = (this.target.form || this.target).elements;
+		var result = {
+			titleFrom: e.titleFrom.value,
+            addTitle: e.addTitle.value,
+            titleCut: e.titleCut.value=='all'?{}:{from: e.from.value,to: e.to.value,},
+        }
+        this.emitEvent('result', result);
+    }
+
+    function onTakeAll(){
+	    this.target.form.elements.from.value="";
+	    this.target.form.elements.to.value="";
+    }
+    function onBetweenSet(){
+        this.target.form.elements.titleCut.value="between";
+    }
+</script>

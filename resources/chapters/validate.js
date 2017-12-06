@@ -1,5 +1,7 @@
 this.lastUpdatedDate = (new Date()).getTime();
 this.content = replaceAll(this.content, '<br>', '<br/>');
+this.printTitle = (typeof(this.printTitle)=='undefined'? true : this.printTitle);
+this.printChapterNumber = (typeof(this.printChapterNumber)=='undefined'? true : this.printChapterNumber);
 dpd.chapters.get({bookId:this.bookId, seqNo:{$eq:this.seqNo}, id: {$ne: this.id}, $fields:{seqNo:1}, $sort: {lastUpdatedDate:1}}, function(cs){
     var newSeqNo = this.seqNo + 1;
     if(cs) {

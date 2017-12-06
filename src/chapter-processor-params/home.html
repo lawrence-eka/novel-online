@@ -1,0 +1,46 @@
+<inject from="/component/popup-panel" name="popup"></inject>
+<inject from="/chapter-processor-params/zipped-text-files" name="zippedTextFiles"></inject>
+
+<div>
+    <div created.trigger="onCreated()">
+        <div if.bind="@needParams">
+            <popup title.bind="$file || $title || 'Chapter Processor'" close.trigger="onApply()" buttontext="Apply">
+                <span slot.name="body">
+                    <zippedTextFiles result.trigger="onResult(event)" unbuttoned></zippedTextFiles>
+                </span>
+            </popup>
+        </div>
+        <div if.bind="!@needParams">
+
+        </div>
+    </div>
+</div>
+<script>
+	var result = {};
+
+	function needParams(file){
+		var  ext = file.toLowerCase();
+		ext = ext.substring(ext.lastIndexOf('.') + 1)
+        console.log(ext);
+		if('|zip|'.indexOf('|' + ext + '|') > -1) return ext;
+		else return '';
+	}
+
+	function initState(props){
+		return {
+			needParams:needParams(props.file),
+        };
+    }
+
+    function onCreated(){
+    	if(!this.state.needParams) this.emitEvent('result', {});
+    }
+
+	function onApply(){
+		this.emitEvent('result', result);
+	}
+
+	function onResult(event){
+		result = event.data;
+	}
+</script>

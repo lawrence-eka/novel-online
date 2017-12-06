@@ -1,13 +1,25 @@
 <inject from="/component/entry" name="entry"></inject>
 
 <div>
-    <div data.load="loadChapter()">
+    <span data.load="loadChapter()">
         <form  created.trigger="onFormCreated()">
-            <entry type="number" prompt="Sequence" name="seqNo" value.bind="data.seqNo"></entry>
-            <entry type="text" prompt="Title" name="title" value.bind="data.title"></entry>
-            <entry type="textarea" prompt="Content" name="content" rich value.bind="data.content" areastyle="height:300px"></entry>
+            <div style="position:fixed; top:40px; left:0; width:100%; height: calc(100vh - 80px); display:table">
+                <div style="display:table-row; height:0;">
+                    <div style="padding-top:5px;padding-bottom:5px">
+                        <entry type="label" naked prompt="Sequence" class="custom-entry-prompt pull-left"></entry>
+                        <entry type="checkbox" traditional prompt="Print" name="printChapterNumber" checked.bind="data.printChapterNumber" class="pull-right" style="margin-top:1px;"></entry>
+                        <entry type="number" naked name="seqNo" value.bind="data.seqNo"></entry>
+                        <entry type="label" naked prompt="Title" class="custom-entry-prompt pull-left"></entry>
+                        <entry type="checkbox" traditional prompt="Print" name="printTitle" checked.bind="data.printTitle" class="pull-right" style="margin-top:1px;"></entry>
+                        <entry type="text" naked name="title" value.bind="data.title"></entry>
+                    </div>
+                </div>
+                <div style="display:table-row;">
+                    <entry type="textarea" name="content" rich value.bind="data.content" naked areastyle="height:100% !important; width:100% !important;box-sizing:border-box !important;"></entry>
+                </div>
+            </div>
         </form>
-    </div>
+    </span>
 </div>
 
 <script>
@@ -59,6 +71,8 @@
 	    self.state.chapter.seqNo = e.seqNo.value;
 	    self.state.chapter.title = e.title.value;
 	    self.state.chapter.content = e.content.value;
+	    self.state.chapter.printChapterNumber = e.printChapterNumber.checked;
+	    self.state.chapter.printTitle = e.printTitle.checked;
 
 	    if(self.state.chapter.id) {
 	    	dpd.chapters.put(self.state.chapter.id, self.state.chapter, function(result){
@@ -74,14 +88,18 @@
 
     function onDelete(){
     	var self = this;
-    	if(self.state.chapter.id){
-    		dpd.chapters.del(self.state.chapter.id, function(result){
-    			self.emitEvent('delete');
-            })
-        }
-        else {
-    		self.emitEvent('delete');
-        }
+	    dialogManager.show('Confirmation', 'Are you sure to delete this chapter?', 'yesno', function(event) {
+		    if(event.data == 'yes') {
+			    if(self.state.chapter.id) {
+				    dpd.chapters.del(self.state.chapter.id, function (result) {
+					    self.emitEvent('delete');
+				    })
+			    }
+			    else {
+				    self.emitEvent('delete');
+			    }
+		    }
+	    });
     }
 
     function onCancel(){

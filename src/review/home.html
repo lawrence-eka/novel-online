@@ -5,7 +5,7 @@
 <inject from="/component/horizontal-line" name="line"></inject>
 
 <div>
-    <div class="container custom-std-anim" data.load="loadData()">
+    <div data.load="loadData()">
         <div class="row book-row-centered">
             <thumb unlimitedtitlewidth book.bind="@book" click.trigger="onRead()"></thumb>
         </div>
@@ -13,10 +13,8 @@
             <rating name='rating' value.bind="@book.stars" max="5" showtext readonly></rating>
         </div>
         <div class="row">
-            <entry type="button" value="Read This!" click.trigger="onRead()"></entry>
-        </div>
-        <div class="row">
-            <entry type="button" value="Close" click.trigger="onClose()"></entry>
+                <entry type="button" value="Read This!" click.trigger="onRead()"></entry>
+                <entry type="button" value="Close" click.trigger="onClose()"></entry>
         </div>
         <entry type="label" naked prompt="Author" value.bind="@book.creator"></entry>
         <entry type="label" naked prompt="Year" value.bind="@book.date?@book.date:'-'"></entry>
@@ -131,7 +129,6 @@
 		return new Promise(function(resolve) {
             dpd.reviews.get({bookId: book.id, includeNames: true, $sort:{stars:-1, date:-1}}, function (reviews) {
                 self.state.reviews = reviews;
-                console.log('done reviews');
                 resolve(reviews);
             })
         });

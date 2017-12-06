@@ -1,6 +1,6 @@
 {
 	"type": "Fileupload",
-	"directory": "thumbs",
+	"directory": "upload/thumbs",
 	"authorization": false,
 	"uniqueFilename": false
 }

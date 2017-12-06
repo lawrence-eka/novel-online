@@ -5,13 +5,12 @@
 <inject from="/writer/chapters" name="chapters"></inject>
 <inject from="/writer/chapter-editor" name="chapter-editor"></inject>
 
-
 <div>
     <div if.bind="!@editedChapter">
-        <div class="container custom-std-anim" data.load="loadData()">
+        <div class="container custom-std-anim" data.load="loadData()" >
             <form created.trigger="onFormCreated()">
                 <div class="row book-row-centered">
-                    <pict name="pict" img.bind="'thumbs/' + @book.thumb" quality="1" ratio.bind="@book.isEditable? 1:{width:100}"></pict>
+                    <pict name="pict" img.bind="'upload/thumbs/' + @book.thumb" quality="1" ratio.bind="@book.isEditable? 1:{width:100}"></pict>
                 </div>
                 <div class="row">
                     <entry type="checkbox" name='isPublished' prompt="Published" checked.bind="@book.isPublished" style="padding-left:0 !important"></entry>
@@ -57,7 +56,7 @@
 	function onFormCreated(){
         var additionalIcons = [
 			{icon: "fa fa-save normal-icon", name: "save", click: onSave.bind(this)},
-			{icon: "fa fa-undo normal-icon", name: "cancel", click: onCancel.bind(this)},
+	        {icon: "fa fa-undo normal-icon", name: "cancel", click: onCancel.bind(this)},
 		];
 		if(!this.state.deleteWhenCancel) {
 			additionalIcons.push({icon: "fa fa-trash-o normal-icon", name: "delete", click: onDelete.bind(this)});
@@ -160,14 +159,21 @@
     }
 
     function onDelete(){
-        if(!this.state.book.id) {
-		    this.emitEvent('delete');
-		    return;
-	    }
 		var self = this;
-		dpd.books.del(self.state.book.id, function(result){
-			self.emitEvent('delete');
-        })
+		dialogManager.show('Confirmation', 'Are you sure to delete this book?', 'yesno', function(event){
+			if(event.data =='yes') {
+				if(!self.state.book.id) {
+					self.emitEvent('delete');
+					return;
+				}
+				else {
+					self.emitEvent('delete');
+				}
+				dpd.books.del(self.state.book.id, function (result) {
+					self.emitEvent('delete');
+				})
+			}
+        });
     }
 
     function onCancel(){

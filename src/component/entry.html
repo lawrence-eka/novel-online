@@ -1,7 +1,7 @@
 <inject from="/component/entry-naked" name="entry-naked"></inject>
 
 <span>
-    <entry-naked if.bind="$naked || $type=='hidden'"
+    <entry-naked if.bind="$naked || $type=='hidden' || $traditional"
         type.bind="$type"
         prompt.bind="$prompt"
         href.bind="$href"
@@ -30,6 +30,7 @@
         collapsible.bind="$collapsible"
         areastyle.bind="$areastyle"
         rich.bind="$rich"
+        traditional.bind="$traditional"
         search.trigger="onSearch(event)"
         change.trigger="onChange(event)"
         keyUp.trigger="onKeyUp(event)"
@@ -38,7 +39,7 @@
         created.trigger="onCreated()"
         lookupSelected.trigger="onLookupSelected(event)">
     </entry-naked>
-    <div if.bind="!$naked && $type!='hidden'" class.bind="whatDivClass($divClass)" style.bind="$style?$style:''">
+    <div if.bind="!$naked && $type!='hidden' && !$traditional" class.bind="whatDivClass($divClass)" style.bind="$style?$style:''">
         <div class.bind="whatInnerDivClass($innerDivClass)">
             <entry-naked
                 type.bind="$type"
@@ -69,6 +70,7 @@
                 collapsible.bind="$collapsible"
                 areastyle.bind="$areastyle"
                 rich.bind="$rich"
+                traditional.bind="$traditional"
                 search.trigger="onSearch(event)"
                 change.trigger="onChange(event)"
                 keyUp.trigger="onKeyUp(event)"

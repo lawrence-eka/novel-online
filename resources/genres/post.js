@@ -1,5 +1,3 @@
-console.log(this);
-
 if(!me) cancel();
 if(this.id) {
     dpd.genres.get(this.id, function(g){
@@ -16,7 +14,7 @@ if(this.id) {
                     });
                 }
                 else {
-                    this.isApproved=me.isAdmin;
+                    this.isApproved=me.isAdmin && this.isApproved;
                 }
             });
         }

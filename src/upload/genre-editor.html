@@ -8,8 +8,7 @@
     </div>
     <div class="row" data.load="loadGenres()">
         <entry type="hidden" name.bind="$name" value.bind="@genresString"></entry>
-        <entry type="lookup" entries.bind="data" created.trigger="onGenreFieldCreated()" multiple divClass="col col-xs-10 col-sm-10 col-md-10 col-lg-10" style="padding-right: 5px !important;"></entry>
-        <entry type="button" value="+" click.trigger="onAddGenre()" divClass="col col-xs-2 col-sm-2 col-md-2 col-lg-2" style="padding-left:0 !important" elementStyle="height:30px !important; padding-top: 0 !important; padding-bottom:0 !important; padding-left:0 !important; padding-right:0 !important"></entry>
+        <entry type="lookup" entries.bind="data" created.trigger="onGenreFieldCreated()" multiple focusout.trigger="onAddGenre()" divClass="col col-xs-12 col-sm-12 col-md-12 col-lg-12"></entry>
     </div>
     <span for.each="genre in @genres">
         <div class="row">
@@ -50,7 +49,7 @@
     }
 
     function onAddGenre(){
-    	this.state.genres = uniquify(this.state.genres.concat(this.state.genreField.value.split(',').map(function(x) {return x.trim();}).filter(function(x){return x != ""})));
+    	this.state.genres = uniquify(this.state.genres.concat(this.state.genreField.value.split(',').map(function(x) {return x.trim().toTitleCase();}).filter(function(x){return x != ""})));
 	    this.state.genresString = this.state.genres.join(',');
 	    this.state.genreField.value = '';
     	$patchChanges();

@@ -40,6 +40,22 @@
 			"required": false,
 			"id": "lastUpdatedDate",
 			"order": 4
+		},
+		"printTitle": {
+			"name": "printTitle",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "printTitle",
+			"order": 5
+		},
+		"printChapterNumber": {
+			"name": "printChapterNumber",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "printChapterNumber",
+			"order": 6
 		}
 	}
 }

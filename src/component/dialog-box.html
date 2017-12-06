@@ -1,0 +1,100 @@
+<inject from="/component/entry" name="entry"></inject>
+
+<div name.bind="$name" created.trigger="onCreated()" deleted.trigger="onDeleted()">
+    <div class="container custom-container-layout custom-std-anim">
+        <div class="row centered-form no-top-margin">
+            <div class="form-panel col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="panel panel-default ">
+                    <div class="panel-heading custom-panel-layout" if.bind="$test || !$notitle || $title">
+                        <h3 class="panel-title">
+                            {{($title ? $title : '')}}
+                        </h3>
+                    </div>
+                    <div class="panel-body custom-panel-layout" style.bind="$style" >
+                        <div class.bind="('row ' + (@centered? 'row-centered' : ''))" >
+                            <entry type="label" name="label" prompt.bind="@message"></entry>
+                        </div>
+                        <div class="row">
+                            <span for.each="button in @buttons">
+                                <div class.bind="@className">
+                                    <entry type="button" naked value.bind="button.text" click.trigger="onCloseDialog(button.text)"></entry>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+	function initState(props){
+		var buttons = [];
+		var className="";
+        if(props.yesnocancel){
+	        className="col-xs-4 col-sm-4 col-md-4 col-lg-4";
+	        buttons.push({text: 'Yes'});
+	        buttons.push({text: 'No'})
+	        buttons.push({text: 'Cancel'})
+		}
+		else if(props.yesno){
+	        className="col-xs-6 col-sm-6 col-md-6 col-lg-6";
+	        buttons.push({text: 'Yes'});
+	        buttons.push({text: 'No'})
+        }
+		else if(props.okcancel) {
+	        className="col-xs-6 col-sm-6 col-md-6 col-lg-6";
+	        buttons.push({text: 'OK'});
+	        buttons.push({text: 'Cancel'})
+		}
+        else if(props.okonly) {
+	        className="col-xs-12 col-sm-12 col-md-12 col-lg-12";
+	        buttons.push({text: 'OK'});
+        }
+        className = "col " + className;
+
+		return {
+			popup: null,
+			popupPanel:null,
+			centered: props.centered,
+			message: props.message,
+			buttons: buttons,
+            className: className,
+			show: props.show,
+		}
+	}
+
+	function doClose(result){
+		this.state.popup.style.visibility = 'hidden';
+		document.getElementsByName('universe')[0].removeChild(this.state.popup);
+		this.state.popup = null;
+
+		this.emitEvent('result', result);
+	}
+
+	function onCloseDialog(event){
+		this.state.popupPanel.className += ' custom-fadeout-anim';
+
+		var panels = document.getElementsByName('universe')[0].children;
+		panels[panels.length - 2].classList.remove('blur');
+
+		setTimeout(doClose.bind(this, event.toLowerCase()), 250);
+	}
+
+	function onCreated(){
+		this.state.popupPanel = this.target;
+		this.state.popup = document.createElement('div');
+
+		var panels = document.getElementsByName('universe')[0].children;
+		panels[panels.length - 1].classList.add('blur');
+
+		document.getElementsByName('universe')[0].appendChild(this.state.popup);
+		this.state.popup.className="container centered-form popupContainer"
+		this.state.popup.style.visibility = 'visible';
+		this.state.popup.appendChild(this.target);
+	}
+	function onDeleted(){
+		document.getElementsByName('motherNature')[0].className = "not-blur";
+	}
+
+</script>

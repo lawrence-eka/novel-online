@@ -1,12 +1,17 @@
 <inject from="/component/navbar" name="navbar"></inject>
+<inject from="/component/dialog-box" name="dialog"></inject>
+
 
 <div class="container custom-std-anim" name="universe" created.trigger="onCreated()" deleted.trigger="onDeleted()">
     <div data.load="checkCurrentUser()"  name="motherNature" class="body-no-background">
         <span ref.name="navbarMain">
-            <navbar mainMenu.bind="mainMenu" additionalicons.bind="@additionalIcons" iconClicked.trigger="onIconClicked(event)"></navbar>
+            <navbar name="navbarMain" forceOpenDrawer.bind="@forceOpenDrawer" activemenuset.bind="@userActivatedMenuSetName" mainMenu.bind="@mainMenu" additionalicons.bind="@additionalIcons"></navbar>
+        </span>
+        <span ref.name="dialog-box">
+            <dialog if.bind="@dialog && @dialog.show" title.bind="@dialog.title" message.bind="@dialog.message" yesnocancel.bind="@dialog.yesnocancel" yesno.bind="@dialog.yesno" okcancel.bind="@dialog.okcancel" okonly.bind="@dialog.okonly" result.trigger="@dialog.onResult(event)"></dialog>
         </span>
         <div if.bind="@atHome" class="row row-centered">
-            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-centered">
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-centered" style="width:99%">
                 <img src="/asset/img/image6.jpg" class="custom-main-menu-image">
             </div>
         </div>
@@ -17,19 +22,24 @@
 <script>
 
 	function initState(props){
-
-		console.log('app init state')
 		var state = {};
 
 		state.hideHomeButton = (window.location.hash == mainMenuPath);
         state.additionalIcons = homeButton(state.hideHomeButton);
         state.atHome = (window.location.hash == mainMenuPath);
+        state.mainMenu = null;
+        state.userActivatedMenuSetName = '';
+        state.forceOpenDrawer = null;
+        state.dialog ={
+        	show:false,
+        }
 		return state;
 	}
 
 	function onPropertyChange(props){
-		console.log('app property change')
-
+        if(props.mainMenu) {
+			this.menu = props.mainMenu.newValue;
+        }
     }
 
     function homeButton(hideHomeButton){
@@ -43,6 +53,7 @@
 
     this.popupManager=null;
 	this.navbarManager=null;
+	this.dialogManager=null;
 
     function checkCurrentUser(){
         setManagers.bind(this)();
@@ -50,8 +61,9 @@
     }
 
     function onCreated() {
-    	//console.log('app on created')
         document.body.className="body-no-background";
+        this.state.navbar = document.getElementsByName('navbarMain')[0];
+	    this.state.navbar.classList.add('show-navbar');
     }
 
     function setManagers(){
@@ -59,36 +71,52 @@
         var self = this;
 
     	function NavbarManager(){
-    		//this.state = self.state;
+            this.set = function(menu, additionalIcons, showHomeButton) {
+            	self.state.mainMenu = menu;
+	            self.state.hideHomeButton = !showHomeButton;
+	            self.state.additionalIcons = additionalIcons.concat(homeButton(self.state.hideHomeButton));
+	            $patchChanges('navbarMain');
+            }
 
-    		this.additionalIcons = function(icons) {
+            this.mainMenu = function(menu){
+            	self.state.mainMenu = menu;
+            	$patchChanges('navbarMain');
+            }
 
+    		this.additionalIcons = function(icons, showHomeButton) {
+			    self.state.hideHomeButton = !showHomeButton;
     			self.state.additionalIcons = icons.concat(homeButton(self.state.hideHomeButton));
-
-//			    if(!override) {
-//				    self.state.additionalIcons = icons.filter(function (i) {
-//					    return !self.state.additionalIcons.find(function (a) {
-//						    return a.name == i.name
-//					    })
-//				    }).concat(self.state.additionalIcons);
-//			    }
-//			    else {
-//				    self.state.additionalIcons = icons.concat(self.state.additionalIcons.filter(function (i) {
-//					    return !icons.find(function (a) {
-//						    return a.name == i.name
-//					    })
-//				    }));
-//                }
 			    $patchChanges('navbarMain');
+            }
+
+            this.patchChanges = function(){
+    			$patchChanges('navbarMain');
             }
 
             this.removeAdditionalIcons = function(iconName) {
 	            if(iconName) self.state.additionalIcons = self.state.additionalIcons.filter(function(i){return i.name != iconName});
-	            else self.state.additionalIcons = homeButton(self.state.hideHomeButton);
+	            else {
+		            self.state.hideHomeButton = (window.location.hash == mainMenuPath);
+	            	self.state.additionalIcons = homeButton(self.state.hideHomeButton);
+	            }
 	            $patchChanges('navbarMain');
             }
-        }
 
+            this.isNavbarVisible = function() {
+			    return !self.state.navbar.classList.contains('hide-navbar');
+            }
+
+            this.showMenu = function(menuName) {
+                self.state.userActivatedMenuSetName = menuName;
+                self.state.forceOpenDrawer = Math.random();
+                $patchChanges('navbarMain');
+            }
+
+            this.toggleNavbar = function() {
+			    self.state.navbar.classList.toggle('hide-navbar');
+            }
+
+        }
 
 	    function PopupManager () {
 		    var popup = [];
@@ -109,7 +137,6 @@
 		    }
 
 		    this.close = function(afterClosing){
-
 			    doClose = function(afterClosing){
 				    document.getElementsByName('universe')[0].removeChild(popup.splice(-1)[0]);
 				    afterClosing();
@@ -125,8 +152,29 @@
 		    }
 	    }
 
+	    function DialogManager(){
+    		hide = function(event){
+    			self.state.dialog.clientResult(event);
+    			self.state.dialog.show=false;
+            }
+    		this.show = function(title, message, buttons, onResult){
+    			self.state.dialog.show=true;
+    			self.state.dialog.message=message;
+    			self.state.dialog.title=title;
+    			buttons = buttons || '';
+    			buttons = buttons.toLowerCase();
+    			self.state.dialog.yesnocancel = (buttons == 'yesnocancel');
+    			self.state.dialog.yesno = (buttons == 'yesno');
+    			self.state.dialog.okcancel = (buttons = 'okcancel');
+    			self.state.dialog.okonly = (!self.state.dialog.yesnocancel && !self.state.dialog.yesno && !self.state.dialog.okcancel);
+    			self.state.dialog.onResult = hide;
+    			self.state.dialog.clientResult = onResult;
+    			$patchChanges('dialog-box');
+            }
+        }
 	    popupManager = new PopupManager();
     	navbarManager = new NavbarManager();
+    	dialogManager = new DialogManager();
     }
 
     document.addEventListener('touchmove', function(event){if(event.scale !==1){event.preventDefault();}}, false);
