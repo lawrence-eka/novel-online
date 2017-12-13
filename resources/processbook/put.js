@@ -1,7 +1,6 @@
-console.log('on put', query);
 
-var bookInfo = require('../codes/bookInfo.js');
-var zipExtractor = require('../codes/zipExtractor.js');
+var bookInfo = require(process().cwd() + '/codes/bookInfo.js');
+var zipExtractor = require(process().cwd() + '/codes/zipExtractor.js');
 var az = require('adm-zip');
 var tn = require('node-thumbnail').thumb;
 var fe = require('fs-extra');
@@ -61,14 +60,16 @@ if(epub.substring(epub.lastIndexOf('.') + 1).toLowerCase() == 'epub') {
 else { //a zip of text files is uploaded
     zipExtractor.retrieve(epub, query.originalFilename).then(function(book){
         if(book){
-            dpd.books.put(query.bookId, {
+            var newInfo = {
                 isPublished: false,
                 isEditable:true,
                 identifier:'ISBN',
                 uploaderId:me.id,
                 creator: toTitleCase(me.firstName + ' ' + me.lastName),
                 date: (new Date(book.earliestTime)).getFullYear(),
-            }, function(result, err){
+            };
+                
+            dpd.books.put(query.bookId, newInfo , function(result, err){
                 book.chapter.forEach(function(c){
                     var content = replaceAll(c.content, '\r\n', '\n').trim();
                     var firstLine = content.substring(0, content.indexOf('\n')).trim();
@@ -100,6 +101,7 @@ else { //a zip of text files is uploaded
                         title: title,
                         content: replaceAll(content, '\n', '<br/>'),
                     }, function(r, e){
+
                         if(e){
                             setResult(null, e);
                         }
@@ -137,3 +139,4 @@ function toTitleCase(z) {
 }
 
 function replaceAll(t, o, n) {return t.split(o).join(n);}
+

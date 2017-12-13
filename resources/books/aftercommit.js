@@ -1,4 +1,5 @@
 //console.log('aftercommit:', this, previous, query)
+
 minus(this.subjects, previous.subjects).forEach(function(n){
     dpd.genres.post({genre:n, isApproved:false, minAge:0});
 });

@@ -1,3 +1,4 @@
+try{
 var fs = require('fs-extra');
 //var f = 'public/thumbs/' + this.thumb;
 
@@ -20,3 +21,7 @@ dpd.chapters.get({bookId:this.id}, function(chapters){
         dpd.chapters.del(c.id);
     })
 })
+}
+catch(e){
+    console.log('On Delete book', e);
+}

@@ -1,0 +1,170 @@
+<inject from="/component/entry" name="entry"></inject>
+
+<div>
+    <span data.load="loadChapter()">
+        <form  created.trigger="onFormCreated()">
+            <div id="standalone-container" style="margin-top:-15px; margin-left:-15px; margin-right:-15px; margin-bottom:-10px; height: calc(100vh - 50px); display:flex; flex-direction:column;">
+                <div id="fields-container" class="ql-toolbar ql-snow">
+                    <entry type="label" naked prompt="Sequence" class="custom-entry-prompt pull-left"></entry>
+                    <entry type="checkbox" traditional prompt="Print" name="printChapterNumber" checked.bind="data.printChapterNumber" class="pull-right" style="margin-top:1px;"></entry>
+                    <entry type="number" naked name="seqNo" value.bind="data.seqNo"></entry>
+                    <entry type="label" naked prompt="Title" class="custom-entry-prompt pull-left"></entry>
+                    <entry type="checkbox" traditional prompt="Print" name="printTitle" checked.bind="data.printTitle" class="pull-right" style="margin-top:1px;"></entry>
+                    <entry type="text" naked name="title" value.bind="data.title"></entry>
+                </div>
+                <div id="toolbar-container">
+                    <span class="ql-formats">
+                        <select class="ql-font"></select>
+                        <select class="ql-size"></select>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-bold"></button>
+                        <button class="ql-italic"></button>
+                        <button class="ql-underline"></button>
+                        <button class="ql-strike"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <select class="ql-color"></select>
+                        <select class="ql-background"></select>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-script" value="sub"></button>
+                        <button class="ql-script" value="super"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-header" value="1"></button>
+                        <button class="ql-header" value="2"></button>
+                        <button class="ql-blockquote"></button>
+                        <button class="ql-code-block"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-list" value="ordered"></button>
+                        <button class="ql-list" value="bullet"></button>
+                        <button class="ql-indent" value="-1"></button>
+                        <button class="ql-indent" value="+1"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-direction" value="rtl"></button>
+                        <select class="ql-align"></select>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-link"></button>
+                        <button class="ql-image"></button>
+                        <button class="ql-video"></button>
+                        <button class="ql-formula"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-clean"></button>
+                    </span>
+                </div>
+                <div id="editor-container" style="flex-grow:1 !important; height:0 !important"></div>
+            </div>
+        </form>
+    </span>
+</div>
+
+<script>
+//    var quill = null;
+	function initState(props){
+		return {
+			chapter:props.chapter,
+			deleteWhenCancel: (!props.chapter) || (!props.chapter.id),
+            quill:null,
+		}
+	}
+	function loadChapter(){
+		var self = this;
+		return new Promise(function(resolve){
+			if(!self.state.chapter) resolve({});
+			else if(typeof(self.state.chapter)=='object') resolve(self.state.chapter);
+			else {
+				dpd.chapter.get(self.state.chapter, function(result){
+					self.state.chapter = result;
+					resolve(self.state.chapter);
+				})
+			}
+		})
+	}
+
+	function onPropertyChange(props){
+		if(props.chapter) {
+			this.state.chapter = props.chapter.newValue;
+			this.state.deleteWhenCancel = (!this.state.chapter) || (!this.state.chapter.id);
+		}
+	}
+
+	function initializeQuill(content){
+		//debugger;
+		this.state.quill = new Quill('#editor-container', {
+			modules: {
+				formula: false,
+				syntax: false,
+				toolbar: '#toolbar-container'
+			},
+			placeholder: 'Compose an epic...',
+			theme: 'snow'
+		});
+		this.state.quill.clipboard.dangerouslyPasteHTML(this.state.chapter.content);
+	}
+
+	function onFormCreated(){
+		var additionalIcons = [
+			{icon: "fa fa-save normal-icon", name: "save", click: onSave.bind(this)},
+			{icon: "fa fa-undo normal-icon", name: "cancel", click: onCancel.bind(this)},
+		];
+		if(!this.state.deleteWhenCancel) {
+			additionalIcons.push({icon: "fa fa-trash-o normal-icon", name: "delete", click: onDelete.bind(this)});
+		}
+		else {
+			navbarManager.removeAdditionalIcons('delete');
+		}
+		navbarManager.additionalIcons(additionalIcons, true);
+		setTimeout(initializeQuill.bind(this), 0);
+	}
+
+	function onSave(){
+		var e = this.target.elements;
+		var self = this;
+
+		self.state.chapter.seqNo = e.seqNo.value;
+		self.state.chapter.title = e.title.value;
+		self.state.chapter.content = this.state.quill.editor.scroll.domNode.innerHTML;
+
+		self.state.chapter.printChapterNumber = e.printChapterNumber.checked;
+		self.state.chapter.printTitle = e.printTitle.checked;
+
+		if(self.state.chapter.id) {
+			dpd.chapters.put(self.state.chapter.id, self.state.chapter, function(result){
+				self.emitEvent('save');
+			})
+		}
+		else {
+			dpd.chapters.post(self.state.chapter, function(result){
+				self.emitEvent('save');
+			})
+		}
+	}
+
+	function onDelete(){
+		var self = this;
+		dialogManager.show('Confirmation', 'Are you sure to delete this chapter?', 'yesno', function(event) {
+			if(event.data == 'yes') {
+				if(self.state.chapter.id) {
+					dpd.chapters.del(self.state.chapter.id, function (result) {
+						self.emitEvent('delete');
+					})
+				}
+				else {
+					self.emitEvent('delete');
+				}
+			}
+		});
+	}
+
+	function onCancel(){
+		if(this.state.deleteWhenCancel) onDelete.bind(this)();
+		else this.emitEvent('cancel');
+	}
+
+
+</script>

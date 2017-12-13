@@ -1,5 +1,5 @@
 {
-  "name": "markimroh",
+  "name": "novel-online",
   "version": "0.0.1",
   "description": "Super awesome app",
   "keywords": [],
@@ -7,7 +7,7 @@
   "author": "You!",
   "contributors": [],
   "dependencies": {
-    "deployd": ">= 0",
+    "deployd": "*",
     "dpd-email": "^0.3.0",
     "dpd-event-callback": "0.0.2",
     "dpd-fileupload": "0.0.17",
@@ -22,7 +22,7 @@
     "npm": "1.2.x"
   },
   "license": "MIT",
-  "main": "markimroh.js",
+  "main": "novel-online.js",
   "directories": {
     "test": "test"
   },
