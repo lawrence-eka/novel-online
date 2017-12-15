@@ -157,19 +157,21 @@
     			self.state.dialog.clientResult(event);
     			self.state.dialog.show=false;
             }
-    		this.show = function(title, message, buttons, onResult){
-    			self.state.dialog.show=true;
-    			self.state.dialog.message=message;
-    			self.state.dialog.title=title;
-    			buttons = buttons || '';
-    			buttons = buttons.toLowerCase();
-    			self.state.dialog.yesnocancel = (buttons == 'yesnocancel');
-    			self.state.dialog.yesno = (buttons == 'yesno');
-    			self.state.dialog.okcancel = (buttons = 'okcancel');
-    			self.state.dialog.okonly = (!self.state.dialog.yesnocancel && !self.state.dialog.yesno && !self.state.dialog.okcancel);
-    			self.state.dialog.onResult = hide;
-    			self.state.dialog.clientResult = onResult;
-    			$patchChanges('dialog-box');
+    		this.show = function(title, message, buttons, onResult, isShow){
+    			if(typeof(isShow)=="undefined" || isShow) {
+				    self.state.dialog.show = true;
+				    self.state.dialog.message = message;
+				    self.state.dialog.title = title;
+				    buttons = buttons || '';
+				    buttons = buttons.toLowerCase();
+				    self.state.dialog.yesnocancel = (buttons == 'yesnocancel');
+				    self.state.dialog.yesno = (buttons == 'yesno');
+				    self.state.dialog.okcancel = (buttons = 'okcancel');
+				    self.state.dialog.okonly = (!self.state.dialog.yesnocancel && !self.state.dialog.yesno && !self.state.dialog.okcancel);
+				    self.state.dialog.onResult = hide;
+				    self.state.dialog.clientResult = onResult;
+				    $patchChanges('dialog-box');
+			    } else onResult();
             }
         }
 	    popupManager = new PopupManager();

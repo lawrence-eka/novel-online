@@ -37,6 +37,7 @@ yalla.framework.addComponent("/dist/upload/info-editor", (function() {
     state.reviews = [];
     state.alert = new Alert(null, $patchChanges, "alert");
     state.editedChapter = null;
+    state.form = null;
     return state;
   }
 
@@ -171,7 +172,7 @@ yalla.framework.addComponent("/dist/upload/info-editor", (function() {
   function onDelete() {
     var self = this;
     dialogManager.show('Confirmation', 'Are you sure to delete this book?', 'yesno', function(event) {
-      if (event.data == 'yes') {
+      if (!event || event.data == 'yes') {
         if (!self.state.book.id) {
           self.emitEvent('delete');
           return;
@@ -252,7 +253,7 @@ yalla.framework.addComponent("/dist/upload/info-editor", (function() {
     var pict = _context["pict"];
     _context["chapters"] = $inject("/writer/chapters");
     var chapters = _context["chapters"];
-    _context["chapter-editor"] = $inject("/writer/chapter-editor");
+    _context["chapter-editor"] = $inject("/writer/chapter-editor-quill");
     var chapterEditor = _context["chapter-editor"];
     _elementOpenStart("div", "");
     _attr("element", "dist.upload.info-editor");

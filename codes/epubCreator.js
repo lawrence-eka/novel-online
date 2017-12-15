@@ -17,9 +17,9 @@ exports.create = function(book, chapters, epubPath, epubFilename) {
 			subjects: book.subjects.map(function(s){return {subject:s}}),
 		});
 		var cn = 1;
-		var xhtml1 = '<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>';
-		var xhtml2 = '</title></head><body>';
-		var xhtml3 = '</body></html>';
+		var xhtml1 = '<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" href="quill.core.css" type="text/css"/><title>';
+		var xhtml2 = '</title></head><body><span class="ql-container ql-editor">';
+		var xhtml3 = '</span></body></html>';
 		chapters.forEach(function(c){
 			var data = xhtml1 + c.title + xhtml2;
 			if(c.printChapterNumber || c.printTitle) {

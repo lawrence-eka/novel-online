@@ -39,6 +39,7 @@
 		state.reviews = [];
 		state.alert = new Alert(null, $patchChanges, "alert");
 		state.editedChapter = null;
+		state.form = null;
         return state;
 	}
 
@@ -161,7 +162,7 @@
     function onDelete(){
 		var self = this;
 		dialogManager.show('Confirmation', 'Are you sure to delete this book?', 'yesno', function(event){
-			if(event.data =='yes') {
+			if(!event || event.data =='yes') {
 				if(!self.state.book.id) {
 					self.emitEvent('delete');
 					return;

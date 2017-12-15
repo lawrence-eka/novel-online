@@ -70,6 +70,7 @@
 			chapter:props.chapter,
 			deleteWhenCancel: (!props.chapter) || (!props.chapter.id),
             quill:null,
+            form:null,
 		}
 	}
 	function loadChapter(){
@@ -104,7 +105,7 @@
 			placeholder: 'Compose an epic...',
 			theme: 'snow'
 		});
-		this.state.quill.clipboard.dangerouslyPasteHTML(this.state.chapter.content);
+		this.state.quill.clipboard.dangerouslyPasteHTML(this.state.chapter.content || "");
 	}
 
 	function onFormCreated(){
@@ -119,6 +120,7 @@
 			navbarManager.removeAdditionalIcons('delete');
 		}
 		navbarManager.additionalIcons(additionalIcons, true);
+		this.state.form = this;
 		setTimeout(initializeQuill.bind(this), 0);
 	}
 
@@ -148,7 +150,7 @@
 	function onDelete(){
 		var self = this;
 		dialogManager.show('Confirmation', 'Are you sure to delete this chapter?', 'yesno', function(event) {
-			if(event.data == 'yes') {
+			if(!event || event.data == 'yes') {
 				if(self.state.chapter.id) {
 					dpd.chapters.del(self.state.chapter.id, function (result) {
 						self.emitEvent('delete');
@@ -158,12 +160,42 @@
 					self.emitEvent('delete');
 				}
 			}
-		});
+		}, chapterHasValue(self.state));
 	}
 
+	function chapterHasValue(state){
+		var c = state.chapter;
+		var e = state.form.target.elements;
+		return (
+			c.title ||
+            e.title.value ||
+			c.content ||
+			state.quill.editor.scroll.domNode.innerText.trim()
+		);
+    }
+
+	function chapterHasChanges(state){
+		var c = state.chapter;
+		var e = state.form.target.elements;
+		return (
+			c.seqNo != e.seqNo.value ||
+            c.title != e.title.value ||
+			c.printChapterNumber != e.printChapterNumber.checked ||
+			c.printTitle != e.printTitle.checked ||
+            c.content != state.quill.editor.scroll.domNode.innerHTML.replaceAll(decodeURI("%3Cbr%3E"), decodeURI("%3Cbr/%3E")) ||
+            false
+        );
+    }
 	function onCancel(){
+		var self = this;
 		if(this.state.deleteWhenCancel) onDelete.bind(this)();
-		else this.emitEvent('cancel');
+		else {
+            dialogManager.show('Confirmation', 'Are you sure want to discard pending changes on this chapter?', 'yesno', function(event) {
+                if(!event || event.data == 'yes') {
+                    self.emitEvent('cancel');
+                }
+            }, chapterHasChanges(this.state));
+        }
 	}
 
 

@@ -71,6 +71,8 @@ var assets = [
 	{seq: 2, file: "asset/css/awesomplete.css"},
 	{seq: 4, file: "asset/js/awesomplete/awesomplete.js"},
 	{seq: 4, file: "asset/js/nicEdit/nicEdit.js"},
+	{seq: 4, file: "asset/js/quill/quill.snow.css"},
+	{seq: 4, file: "asset/js/quill/quill.min.js"},
 	{seq: 2, file: "dpd.js"},
 	{seq: 2, file: "asset/js/own/prototypes.js"},
 	{seq: 2, file: "asset/js/own/datePair.js"},

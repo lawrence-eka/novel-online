@@ -1,7 +1,7 @@
 /**
 * Created by Lawrence Eka on 14-Jun-2017.
 */
-function Event() {
+function YallaEvent() {
 	var self = this;
 	self.listeners =[];
 	

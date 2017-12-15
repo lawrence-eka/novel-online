@@ -8,7 +8,7 @@ function Alert(alertType, patchFunction, refName) {
 	self.patchChanges=patchFunction;
 	self.refName = refName;
 	
-	self.onError = new Event();
+	self.onError = new YallaEvent();
 		
     self.text = function() {
         return self._text;
